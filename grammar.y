@@ -1,5 +1,5 @@
 %{
-#include "all.hpp"
+#include "ast.hpp"
 
 extern "C"
 {
@@ -35,6 +35,9 @@ int yyerror (const char* s);
 
 %type <any> symbol
 %type <any> symbol_expr
+
+%type <any> integer_constant
+%type <any> string_constant
 
 %type <any> call
 
@@ -125,17 +128,13 @@ val_instruction
 {
   $$ = $1;
 }
-| STRING
+| string_constant
 {
-  auto ret = new StringInstruction();
-  ret->value = $1;
-  $$ = (void*)ret;
+  $$ = $1;
 }
-| CONSTANTI
+| integer_constant
 {
-  auto ret = new IntegerConstantInstruction();
-  ret->value = $1;
-  $$ = (void*)ret;
+  $$ = $1;
 }
 | instr_block
 {
@@ -148,6 +147,24 @@ val_instruction
 | call
 {
   $$ = $1;
+}
+;
+
+integer_constant
+: CONSTANTI
+{
+  auto ret = new IntegerConstantInstruction();
+  ret->value = $1;
+  $$ = (void*)ret;
+}
+;
+
+string_constant
+: STRING
+{
+  auto ret = new StringInstruction();
+  ret->value = $1;
+  $$ = (void*)ret;
 }
 ;
 
@@ -281,6 +298,10 @@ value_list
   auto ret = new Tuple();
   ret->push_back((ValInstruction*)$1);
   $$ = (void*)ret;
+}
+|
+{
+  $$ = (void*)new Tuple();
 }
 ;
 
