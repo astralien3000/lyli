@@ -1,0 +1,16 @@
+import {
+  std.io;
+};
+
+function int main(array<string> args) = {
+  print("hello world !");
+  return(0);
+};
+
+"a";
+158;
+a;
+a.b;
+a<a>.b<c>;
+(a, b, c);
+{a;b;c;};
