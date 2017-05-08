@@ -65,7 +65,7 @@ global
   if(list != NULL) {
     cout << list->size() << endl;
     for(auto it = list->rbegin() ; it != list->rend() ; it++) {
-      cout << (*it)->str() << endl;
+      cout << (*it)->str() << ";" << endl;
     }
   }
 }
@@ -112,20 +112,18 @@ instruction
 def_instruction
 : var_def
 {
-  $$ = NULL;
+  $$ = $1;
 }
 | func_def
 {
-  $$ = NULL;
+  $$ = $1;
 }
 ;
 
 val_instruction
 : symbol_expr
 {
-  auto ret = new SymbolInstruction();
-  ret->symbol = (SymbolExpr*)$1;
-  $$ = (void*)ret;
+  $$ = $1;
 }
 | STRING
 {
@@ -156,40 +154,85 @@ val_instruction
 var_decl
 : symbol_expr IDENTIFIER
 {
-  $$ = NULL;
+  auto ret = new VarDecl();
+  ret->name = $2;
+  ret->type = (SymbolExpr*)$1;
+  $$ = (void*)ret;
 }
 ;
 
 var_def
 : var_decl
 {
-  $$ = NULL;
+  auto ret = new DefInstruction();
+  ret->decl = (VarDecl*)$1;
+  ret->value = NULL;
+  $$ = (void*)ret;
 }
 | var_decl '=' val_instruction
 {
-  $$ = NULL;
+  auto ret = new DefInstruction();
+  ret->decl = (VarDecl*)$1;
+  ret->value = (ValInstruction*)$3;
+  $$ = (void*)ret;
 }
 ;
 
 func_decl
 : symbol_expr symbol_expr IDENTIFIER params_def
 {
-  $$ = NULL;
+  auto base_type = (SymbolExpr*)$1;
+  auto func_return_type = (SymbolExpr*)$2;
+  auto func_params = (Params*)$4;
+  auto func_type = new Call();
+  func_type->symbol = func_return_type;
+  func_type->tuple = func_params->typeTuple();
+  func_type->block = NULL;
+  if(base_type->last()->tlist == NULL) {
+    base_type->last()->tlist = new TemplateList();
+  }
+  base_type->last()->tlist->insert(base_type->last()->tlist->begin(), func_type);
+  auto ret = new VarDecl();
+  ret->name = $3;
+  ret->type = base_type;
+  $$ = (void*)ret;
 }
 | symbol_expr IDENTIFIER params_def
 {
-  $$ = NULL;
+  auto base_type = (SymbolExpr*)$1;
+  auto func_return_type = new Symbol();
+  func_return_type->name = "void";
+  func_return_type->tlist = NULL;
+  auto func_params = (Params*)$3;
+  auto func_type = new Call();
+  func_type->symbol = func_return_type;
+  func_type->tuple = func_params->typeTuple();
+  func_type->block = NULL;
+  if(base_type->last()->tlist == NULL) {
+    base_type->last()->tlist = new TemplateList();
+  }
+  base_type->last()->tlist->insert(base_type->last()->tlist->begin(), func_type);
+  auto ret = new VarDecl();
+  ret->name = $2;
+  ret->type = base_type;
+  $$ = (void*)ret;
 }
 ;
 
 func_def
 : func_decl
 {
-  $$ = NULL;
+  auto ret = new DefInstruction();
+  ret->decl = (VarDecl*)$1;
+  ret->value = NULL;
+  $$ = (void*)ret;
 }
 | func_decl '=' instr_block
 {
-  $$ = NULL;
+  auto ret = new DefInstruction();
+  ret->decl = (VarDecl*)$1;
+  ret->value = (ValInstruction*)$3;
+  $$ = (void*)ret;
 }
 ;
 
@@ -251,25 +294,29 @@ value_list_element
 params_def
 : tuple_begin param_list tuple_end
 {
-  $$ = NULL;
+  $$ = $2;
 }
 ;
 
 param_list
 : param_def ',' param_list
 {
-  $$ = NULL;
+  auto ret = (Params*)$1;
+  ret->push_back((DefInstruction*)$3);
+  $$ = (void*)ret;
 }
 | param_def
 {
-  $$ = NULL;
+  auto ret = new Params();
+  ret->push_back((DefInstruction*)$1);
+  $$ = (void*)ret;
 }
 ;
 
 param_def
 : var_def
 {
-  $$ = NULL;
+  $$ = $1;
 }
 ;
 
@@ -319,11 +366,12 @@ symbol
 {
   auto ret = new Symbol();
   ret->name = $1;
+  ret->tlist = NULL;
   $$ = (void*)ret;
 }
 | IDENTIFIER template_tuple
 {
-  auto ret = new TemplatedSymbol();
+  auto ret = new Symbol();
   ret->name = $1;
   ret->tlist = (TemplateList*)$2;
   $$ = (void*)ret;

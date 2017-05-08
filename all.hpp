@@ -19,7 +19,7 @@ struct StringInstruction : ValInstruction {
   string value;
 
   virtual string str(void) {
-    return "\"" + value + "\";";
+    return "\"" + value + "\"";
   }
 };
 
@@ -27,31 +27,46 @@ struct IntegerConstantInstruction : ValInstruction {
   int value;
 
   virtual string str(void) {
-    return to_string(value) + ";";
+    return to_string(value);
   }
 };
 
-struct SymbolExpr {
+struct Symbol;
+
+struct SymbolExpr : ValInstruction {
   virtual string str(void) {
     return "";
+  }
+
+  virtual Symbol* last(void) = 0;
+};
+
+struct TemplateList : vector<ValInstruction*> {
+  virtual string str(void) {
+    string ret = "";
+    for(auto it = rbegin() ; it != rend() ; it++) {
+      if(it != rbegin()) {
+	ret += ",";
+      }
+      ret += (*it)->str();
+    }
+    return ret;
   }
 };
 
 struct Symbol : SymbolExpr {
   string name;
-
-  virtual string str(void) {
-    return name;
-  }  
-};
-
-struct TemplateList : vector<ValInstruction*> {};
-
-struct TemplatedSymbol : Symbol {
   TemplateList* tlist;
 
   virtual string str(void) {
-    return name + "<...>";
+    if(tlist != NULL) {
+      return name + "<" + tlist->str() + ">";
+    }
+    return name;
+  }
+
+  virtual Symbol* last(void) {
+    return this;
   }
 };
 
@@ -59,13 +74,9 @@ struct DotSymbolExpr : SymbolExpr, pair<Symbol*, SymbolExpr*> {
   virtual string str(void) {
     return first->str() + "." + second->str();
   }
-};
 
-struct SymbolInstruction : ValInstruction {
-  SymbolExpr* symbol;
-
-  virtual string str(void) {
-    return symbol->str() + ";";
+  virtual Symbol* last(void) {
+    return second->last();
   }
 };
 
@@ -73,9 +84,12 @@ struct Tuple : vector<ValInstruction*> {
   virtual string str(void) {
     string ret = "";
     for(auto it = rbegin() ; it != rend() ; it++) {
+      if(it != rbegin()) {
+	ret += ",";
+      }
       ret += (*it)->str();
     }
-    return "(" + ret + ");";
+    return "(" + ret + ")";
   }
 };
 
@@ -84,8 +98,9 @@ struct InstrBlock : vector<Instruction*> {
     string ret = "";
     for(auto it = rbegin() ; it != rend() ; it++) {
       ret += (*it)->str();
+      ret += ";";
     }
-    return "{" + ret + "};";
+    return "{" + ret + "}";
   }
 };
 
@@ -97,12 +112,52 @@ struct Call : ValInstruction {
   virtual string str(void) {
     string more = "";
     if(tuple != NULL) {
-      more += "(...)";
+      more += tuple->str();
     }
     if(block != NULL) {
-      more += "{...}";
+      more += block->str();
     }
-    return "call " + symbol->str() + more + ";";
+    return "call " + symbol->str() + more;
+  }
+};
+
+struct VarDecl {
+  string name;
+  SymbolExpr* type;
+
+  virtual string str(void) {
+    return type->str() + " " + name;
+  }
+};
+
+struct DefInstruction : Instruction {
+  VarDecl* decl;
+  ValInstruction* value;
+
+  virtual string str(void) {
+    string more = "";
+    if(value != NULL) {
+      more += " = " + value->str();
+    }
+    return "def " + decl->str() + more;
+  }
+};
+
+struct Params : vector<DefInstruction*> {
+  virtual string str(void) {
+    string ret = "";
+    for(auto it = rbegin() ; it != rend() ; it++) {
+      ret += (*it)->str();
+    }
+    return "(" + ret + ")";
+  }
+
+  Tuple* typeTuple(void) {
+    auto ret = new Tuple();
+    for(auto it = begin() ; it != end() ; it++) {
+      ret->push_back((*it)->decl->type);
+    }
+    return ret;
   }
 };
 

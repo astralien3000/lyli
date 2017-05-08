@@ -7,8 +7,17 @@ function int main(array<string> args) = {
   return(0);
 };
 
-"a";
-158;
+function a;
+function<lool> test(int a);
+
+template my_template(type T) = {
+  function T zero(T val) = {
+    return(0);
+  };
+};
+
+int b = "a";
+int a = 158;
 a;
 a.b;
 a<a>.b<c>;
