@@ -34,10 +34,7 @@ struct IntegerConstantInstruction : ValInstruction {
 struct Symbol;
 
 struct SymbolExpr : ValInstruction {
-  virtual string str(void) {
-    return "";
-  }
-
+  virtual string str(void) = 0;
   virtual Symbol* last(void) = 0;
 };
 
@@ -97,8 +94,10 @@ struct InstrBlock : vector<Instruction*> {
   virtual string str(void) {
     string ret = "";
     for(auto it = rbegin() ; it != rend() ; it++) {
+      if(it != rbegin()) {
+	ret += ";";
+      }
       ret += (*it)->str();
-      ret += ";";
     }
     return "{" + ret + "}";
   }

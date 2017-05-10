@@ -75,14 +75,23 @@ global
 ;
 
 instruction_list
-: instruction_list_element instruction_list
+: instruction_list_element ';' instruction_list
 {
-  Instruction* elem = (Instruction*)$1;
-  InstrBlock* list = (InstrBlock*)$2;
+  auto elem = (Instruction*)$1;
+  auto list = (InstrBlock*)$3;
   if(elem != NULL) {
     list->push_back(elem);
   }
-  $$ = $2;
+  $$ = $3;
+}
+| instruction_list_element
+{
+  auto list = new InstrBlock();
+  auto elem = (Instruction*)$1;
+  if(elem != NULL) {
+    list->push_back(elem);
+  }
+  $$ = (void*)list;
 }
 |
 {
@@ -91,7 +100,7 @@ instruction_list
 ;
 
 instruction_list_element
-: instruction ';'
+: instruction
 {
   $$ = $1;
 }
