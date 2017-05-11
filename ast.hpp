@@ -7,9 +7,30 @@
 
 using namespace std;
 
+struct Instruction;
+struct ValInstruction;
+struct DefInstruction;
+
+struct StringInstruction;
+struct IntegerConstantInstruction;
+
+struct SymbolExpr;
+struct Symbol;
+struct DotSymbolExpr;
+
+struct Tuple;
+struct InstrBlock;
+struct Call;
+
+struct Visitor {
+  virtual void visit(Instruction* instr) = 0;
+};
+
 struct Instruction {
-  virtual string str(void) {
-    return ";";
+  virtual string str(void) = 0;
+
+  virtual void accept(Visitor* visitor) {
+    visitor->visit(this);
   }
 };
 
@@ -90,7 +111,7 @@ struct Tuple : vector<ValInstruction*> {
   }
 };
 
-struct InstrBlock : vector<Instruction*> {
+struct InstrBlock : ValInstruction, vector<Instruction*> {
   virtual string str(void) {
     string ret = "";
     for(auto it = rbegin() ; it != rend() ; it++) {
@@ -106,17 +127,13 @@ struct InstrBlock : vector<Instruction*> {
 struct Call : ValInstruction {
   SymbolExpr* symbol;
   Tuple* tuple;
-  InstrBlock* block;
 
   virtual string str(void) {
     string more = "";
     if(tuple != NULL) {
       more += tuple->str();
     }
-    if(block != NULL) {
-      more += block->str();
-    }
-    return "call " + symbol->str() + more;
+    return symbol->str() + more;
   }
 };
 
@@ -124,40 +141,19 @@ struct VarDecl {
   string name;
   SymbolExpr* type;
 
-  virtual string str(void) {
-    return type->str() + " " + name;
+  InstrBlock* symbolInstr(void) {
+    auto sname = new Symbol();
+    sname->name = name;
+    sname->tlist = NULL;
+    auto sinstr = new InstrBlock();
+    sinstr->push_back(sname);
+    return sinstr;
   }
 };
 
-struct DefInstruction : Instruction {
-  VarDecl* decl;
-  ValInstruction* value;
-
-  virtual string str(void) {
-    string more = "";
-    if(value != NULL) {
-      more += " = " + value->str();
-    }
-    return "def " + decl->str() + more;
-  }
-};
-
-struct Params : vector<DefInstruction*> {
-  virtual string str(void) {
-    string ret = "";
-    for(auto it = rbegin() ; it != rend() ; it++) {
-      ret += (*it)->str();
-    }
-    return "(" + ret + ")";
-  }
-
-  Tuple* typeTuple(void) {
-    auto ret = new Tuple();
-    for(auto it = begin() ; it != end() ; it++) {
-      ret->push_back((*it)->decl->type);
-    }
-    return ret;
-  }
+struct FuncDecl : VarDecl {
+  SymbolExpr* return_type;
+  InstrBlock* params;
 };
 
 #endif//ALL_HPP

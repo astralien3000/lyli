@@ -190,16 +190,36 @@ var_decl
 var_def
 : var_decl
 {
-  auto ret = new DefInstruction();
-  ret->decl = (VarDecl*)$1;
-  ret->value = NULL;
+  auto ret = new Call();
+  auto decl = (VarDecl*)$1;
+  
+  auto symbol = new Symbol();
+  symbol->name = "define";
+  symbol->tlist = new TemplateList();
+  symbol->tlist->push_back(decl->type);
+  ret->symbol = symbol;
+  
+  ret->tuple = new Tuple();
+  ret->tuple->push_back(decl->symbolInstr());
+  
   $$ = (void*)ret;
 }
 | var_decl '=' val_instruction
 {
-  auto ret = new DefInstruction();
-  ret->decl = (VarDecl*)$1;
-  ret->value = (ValInstruction*)$3;
+  auto ret = new Call();
+  auto decl = (VarDecl*)$1;
+  auto instr = (ValInstruction*)$3;
+  
+  auto symbol = new Symbol();
+  symbol->name = "define";
+  symbol->tlist = new TemplateList();
+  symbol->tlist->push_back(decl->type);
+  ret->symbol = symbol;
+  
+  ret->tuple = new Tuple();
+  ret->tuple->push_back(instr);
+  ret->tuple->push_back(decl->symbolInstr());
+
   $$ = (void*)ret;
 }
 ;
@@ -207,40 +227,20 @@ var_def
 func_decl
 : symbol_expr symbol_expr IDENTIFIER params_def
 {
-  auto base_type = (SymbolExpr*)$1;
-  auto func_return_type = (SymbolExpr*)$2;
-  auto func_params = (Params*)$4;
-  auto func_type = new Call();
-  func_type->symbol = func_return_type;
-  func_type->tuple = func_params->typeTuple();
-  func_type->block = NULL;
-  if(base_type->last()->tlist == NULL) {
-    base_type->last()->tlist = new TemplateList();
-  }
-  base_type->last()->tlist->insert(base_type->last()->tlist->begin(), func_type);
-  auto ret = new VarDecl();
+  auto ret = new FuncDecl();
   ret->name = $3;
-  ret->type = base_type;
+  ret->type = (SymbolExpr*)$1;
+  ret->return_type = (SymbolExpr*)$2;
+  ret->params = (InstrBlock*)$4;
   $$ = (void*)ret;
 }
 | symbol_expr IDENTIFIER params_def
 {
-  auto base_type = (SymbolExpr*)$1;
-  auto func_return_type = new Symbol();
-  func_return_type->name = "void";
-  func_return_type->tlist = NULL;
-  auto func_params = (Params*)$3;
-  auto func_type = new Call();
-  func_type->symbol = func_return_type;
-  func_type->tuple = func_params->typeTuple();
-  func_type->block = NULL;
-  if(base_type->last()->tlist == NULL) {
-    base_type->last()->tlist = new TemplateList();
-  }
-  base_type->last()->tlist->insert(base_type->last()->tlist->begin(), func_type);
-  auto ret = new VarDecl();
+  auto ret = new FuncDecl();
   ret->name = $2;
-  ret->type = base_type;
+  ret->type = (SymbolExpr*)$1;
+  ret->return_type = NULL;
+  ret->params = (InstrBlock*)$3;
   $$ = (void*)ret;
 }
 ;
@@ -248,16 +248,49 @@ func_decl
 func_def
 : func_decl
 {
-  auto ret = new DefInstruction();
-  ret->decl = (VarDecl*)$1;
-  ret->value = NULL;
+  auto ret = new Call();
+  auto decl = (FuncDecl*)$1;
+  
+  auto symbol = new Symbol();
+  symbol->name = "define";
+  symbol->tlist = new TemplateList();
+  symbol->tlist->push_back(decl->type);
+  ret->symbol = symbol;
+  
+  ret->tuple = new Tuple();
+  ret->tuple->push_back(decl->params);
+
+  auto rtype = new InstrBlock();
+  ret->tuple->push_back(rtype);
+  if(decl->return_type != NULL) { 
+    rtype->push_back(decl->return_type);
+  }
+  ret->tuple->push_back(decl->symbolInstr());
+
   $$ = (void*)ret;
 }
 | func_decl '=' instr_block
 {
-  auto ret = new DefInstruction();
-  ret->decl = (VarDecl*)$1;
-  ret->value = (ValInstruction*)$3;
+  auto ret = new Call();
+  auto decl = (FuncDecl*)$1;
+  auto instr = (ValInstruction*)$3;
+  
+  auto symbol = new Symbol();
+  symbol->name = "define";
+  symbol->tlist = new TemplateList();
+  symbol->tlist->push_back(decl->type);
+  ret->symbol = symbol;
+  
+  ret->tuple = new Tuple();
+  ret->tuple->push_back(instr);
+  ret->tuple->push_back(decl->params);
+  auto rtype = new InstrBlock();
+  ret->tuple->push_back(rtype);
+  if(decl->return_type != NULL) { 
+    rtype->push_back(decl->return_type);
+  }
+  ret->tuple->push_back(decl->symbolInstr());
+
   $$ = (void*)ret;
 }
 ;
@@ -331,14 +364,14 @@ params_def
 param_list
 : param_def ',' param_list
 {
-  auto ret = (Params*)$1;
-  ret->push_back((DefInstruction*)$3);
+  auto ret = (InstrBlock*)$1;
+  ret->push_back((Instruction*)$3);
   $$ = (void*)ret;
 }
 | param_def
 {
-  auto ret = new Params();
-  ret->push_back((DefInstruction*)$1);
+  auto ret = new InstrBlock();
+  ret->push_back((Instruction*)$1);
   $$ = (void*)ret;
 }
 ;
@@ -356,15 +389,14 @@ call
   auto ret = new Call();
   ret->symbol = (SymbolExpr*)$1;
   ret->tuple = (Tuple*)$2;
-  ret->block = NULL;
   $$ = (void*)ret;
 }
 | symbol_expr       instr_block
 {
   auto ret = new Call();
   ret->symbol = (SymbolExpr*)$1;
-  ret->tuple = NULL;
-  ret->block = (InstrBlock*)$2;
+  ret->tuple = new Tuple();
+  ret->tuple->push_back((InstrBlock*)$2);
   $$ = (void*)ret;
 }
 | symbol_expr tuple instr_block
@@ -372,7 +404,7 @@ call
   auto ret = new Call();
   ret->symbol = (SymbolExpr*)$1;
   ret->tuple = (Tuple*)$2;
-  ret->block = (InstrBlock*)$3;
+  ret->tuple->insert(ret->tuple->begin(), (InstrBlock*)$3);
   $$ = (void*)ret;
 }
 ;
