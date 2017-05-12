@@ -1,27 +1,6 @@
-import { std.io };
+import { io };
 
-function int main(array<string> args) = {
+function int main(array(string) args) = {
   print("hello world !");
   return(0);
 };
-
-function a;
-function<lool> test(int a);
-
-template zero(type T) = {
-  function T zero(T val) = {
-    return(0);
-  };
-};
-
-for({int i = 0 ; i.end() ; i.inc()}) {
-  a.test();
-};
-
-int b = "a";
-int a = 158;
-a;
-a.b;
-a<a>.b<c>;
-(a, b, c);
-{a;b;c};

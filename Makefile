@@ -2,7 +2,7 @@ LEX=lex
 YACC=bison -y
 CFLAGS=-Wall
 CC=gcc
-CXX=g++
+CXX=g++ -std=c++11
 
 GRAMMAR=grammar.y
 LEXER=lexer.l
