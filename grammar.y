@@ -26,71 +26,71 @@ int yyerror (const char* s);
 %%
 
 global
-: instruction_list
+: instr_list
 ;
 
-instruction_list
-: instruction ';' instruction_list
-| instruction
+instr_list
+: instr ';' instr_list
+| instr
 |
 ;
 
-instruction
-: def_instruction
-| ret_instruction
+instr
+: def_instr
+| ret_instr
 ;
 
-def_instruction
-: var_def
-| func_def
+def_instr
+: var_def_instr
+| func_def_instr
 ;
 
-ret_instruction
-: val_instruction
-| ref_instruction
+ret_instr
+: val_instr
+| ref_instr
 ;
 
-val_instruction
-: string_constant
-| integer_constant
-| instr_block
-| tuple
+val_instr
+: string_instr
+| integer_instr
+| instr_tuple_instr
+| value_tuple_instr
 ;
 
-ref_instruction
-: call
-| symbol
-| dot_expr
+ref_instr
+: call_instr
+| symbol_instr
+| dot_expr_instr
 ;
 
-integer_constant
-: CONSTANTI
-;
-
-string_constant
+string_instr
 : STRING
 ;
 
-var_decl
-: ref_instruction IDENTIFIER
+integer_instr
+: CONSTANTI
 ;
 
-var_def
+var_decl
+: ref_instr IDENTIFIER
+;
+
+var_def_instr
 : var_decl
-| var_decl '=' ret_instruction
+| var_decl '=' ret_instr
 ;
 
 func_decl
-: ref_instruction ref_instruction IDENTIFIER params_list
+: ref_instr ref_instr IDENTIFIER params_tuple
 ;
 
-func_def
+func_def_instr
 : func_decl
-| func_decl '=' ret_instruction
+| func_decl '=' ret_instr
 ;
 
-instr_block
-: instr_block_begin instruction_list instr_block_end
+instr_tuple_instr
+: instr_block_begin instr_list instr_block_end
 ;
 
 instr_block_begin
@@ -101,37 +101,37 @@ instr_block_end
 : '}'
 ;
 
-params_list
-: params_list_begin param_list params_list_end
-| params_list_begin params_list_end
+params_tuple
+: params_tuple_begin param_list params_tuple_end
+| params_tuple_begin params_tuple_end
 ;
 
-params_list_begin
+params_tuple_begin
 : '('
 ;
 
-params_list_end
+params_tuple_end
 : ')'
 ;
 
 param_list
-: param_list_element ',' params_list
+: param_list_element ',' params_tuple
 | param_list_element
 ;
 
 param_list_element
-: var_def
+: var_def_instr
 ;
 
-tuple
-: tuple_begin value_list tuple_end
+value_tuple_instr
+: value_tuple_begin value_list value_tuple_end
 ;
 
-tuple_begin
+value_tuple_begin
 : '('
 ;
 
-tuple_end
+value_tuple_end
 : ')'
 ;
 
@@ -142,20 +142,20 @@ value_list
 ;
 
 value_list_element
-: ret_instruction
+: ret_instr
 ;
 
-call
-: ref_instruction tuple
-| ref_instruction instr_block
+call_instr
+: ref_instr value_tuple_instr
+| ref_instr instr_tuple_instr
 ;
 
-symbol
+symbol_instr
 : IDENTIFIER
 ;
 
-dot_expr
-: ref_instruction '.' symbol
+dot_expr_instr
+: ref_instr '.' symbol_instr
 ;
 
 %%
