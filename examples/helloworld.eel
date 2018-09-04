@@ -1,6 +1,6 @@
 import { io };
 
 function int main(array(string) args) = {
-  print("hello world !");
+  io.println("hello world !");
   return(0);
 };

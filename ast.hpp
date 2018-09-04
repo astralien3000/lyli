@@ -3,11 +3,11 @@
 
 #include <string>
 #include <iostream>
-#include <vector>
+#include <list>
 
 using namespace std;
 
-struct Instruction;
+struct Instr;
 struct ValInstruction;
 struct DefInstruction;
 
@@ -23,10 +23,10 @@ struct InstrBlock;
 struct Call;
 
 struct Visitor {
-  virtual void visit(Instruction* instr) = 0;
+  virtual void visit(Instr* instr) = 0;
 };
 
-struct Instruction {
+struct Instr {
   virtual string str(void) = 0;
 
   virtual void accept(Visitor* visitor) {
@@ -34,9 +34,26 @@ struct Instruction {
   }
 };
 
-struct ValInstruction : Instruction {};
+struct Global {
+  list<Instr*>* instrs;
 
-struct StringInstruction : ValInstruction {
+  virtual string str(void) {
+    string ret = "";
+	for(auto it = instrs->begin() ; it != instrs->end() ; it++) {
+		if(it != instrs->begin()) {
+			ret += ";\n";
+		}
+		ret += (*it)->str();
+	}
+	return ret;
+  }
+};
+
+struct RetInstr : Instr {};
+
+struct ValInstr : RetInstr {};
+
+struct StringInstr : ValInstr {
   string value;
 
   virtual string str(void) {
@@ -44,7 +61,7 @@ struct StringInstruction : ValInstruction {
   }
 };
 
-struct IntegerConstantInstruction : ValInstruction {
+struct IntegerConstantInstr : ValInstr {
   int value;
 
   virtual string str(void) {
@@ -52,108 +69,55 @@ struct IntegerConstantInstruction : ValInstruction {
   }
 };
 
-struct Symbol;
+struct InstrTupleInstr : ValInstr {
+  list<Instr*>* instrs;
 
-struct SymbolExpr : ValInstruction {
-  virtual string str(void) = 0;
-  virtual Symbol* last(void) = 0;
-};
-
-struct TemplateList : vector<ValInstruction*> {
   virtual string str(void) {
     string ret = "";
-    for(auto it = rbegin() ; it != rend() ; it++) {
-      if(it != rbegin()) {
-	ret += ",";
-      }
-      ret += (*it)->str();
-    }
-    return ret;
+	ret += "{";
+	for(auto it = instrs->begin() ; it != instrs->end() ; it++) {
+		if(it != instrs->begin()) {
+			ret += ";";
+		}
+		ret += (*it)->str();
+	}
+	ret += "}";
+	return ret;
   }
 };
 
-struct Symbol : SymbolExpr {
+struct RefInstr : RetInstr {};
+
+struct SymbolInstr : RefInstr {
   string name;
-  TemplateList* tlist;
 
   virtual string str(void) {
-    if(tlist != NULL) {
-      return name + "<" + tlist->str() + ">";
-    }
     return name;
   }
-
-  virtual Symbol* last(void) {
-    return this;
-  }
 };
 
-struct DotSymbolExpr : SymbolExpr, pair<Symbol*, SymbolExpr*> {
-  virtual string str(void) {
-    return first->str() + "." + second->str();
-  }
-
-  virtual Symbol* last(void) {
-    return second->last();
-  }
-};
-
-struct Tuple : vector<ValInstruction*> {
-  virtual string str(void) {
-    string ret = "";
-    for(auto it = rbegin() ; it != rend() ; it++) {
-      if(it != rbegin()) {
-	ret += ",";
-      }
-      ret += (*it)->str();
-    }
-    return "(" + ret + ")";
-  }
-};
-
-struct InstrBlock : ValInstruction, vector<Instruction*> {
-  virtual string str(void) {
-    string ret = "";
-    for(auto it = rbegin() ; it != rend() ; it++) {
-      if(it != rbegin()) {
-	ret += ";";
-      }
-      ret += (*it)->str();
-    }
-    return "{" + ret + "}";
-  }
-};
-
-struct Call : ValInstruction {
-  SymbolExpr* symbol;
-  Tuple* tuple;
+struct CallInstr : RefInstr {
+  RefInstr* ref;
+  list<RetInstr*>* params;
 
   virtual string str(void) {
-    string more = "";
-    if(tuple != NULL) {
-      more += tuple->str();
-    }
-    return symbol->str() + more;
+    string ret = ref->str();
+	ret += "(";
+	for(auto it = params->begin() ; it != params->end() ; it++) {
+		if(it != params->begin()) {
+			ret += ",";
+		}
+		ret += (*it)->str();
+	}
+	ret += ")";
+	return ret;
   }
 };
 
-struct VarDecl {
-  string name;
-  SymbolExpr* type;
-
-  InstrBlock* symbolInstr(void) {
-    auto sname = new Symbol();
-    sname->name = name;
-    sname->tlist = NULL;
-    auto sinstr = new InstrBlock();
-    sinstr->push_back(sname);
-    return sinstr;
+struct Unsupported : RefInstr {
+  virtual string str(void) {
+    return "NOT_SUPPORTED";
   }
-};
-
-struct FuncDecl : VarDecl {
-  SymbolExpr* return_type;
-  InstrBlock* params;
 };
 
 #endif//ALL_HPP

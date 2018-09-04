@@ -1,6 +1,8 @@
 %{
 #include "ast.hpp"
 
+#define STRING_MAX_LENGTH (1024)
+
 extern "C"
 {
 
@@ -12,7 +14,7 @@ int yyerror (const char* s);
 
 %}
 
-%union { float fval; long ival; char str[1024]; void* any; }
+%union { float fval; long ival; char str[STRING_MAX_LENGTH]; void* any; }
 
 %token <str>IDENTIFIER
 %token <str>STRING
@@ -22,49 +24,97 @@ int yyerror (const char* s);
 %token TYPE_NAME
 %token INT FLOAT VOID
 
+%type<any> string_instr val_instr symbol_instr ret_instr value_list_element value_list ref_instr value_tuple_instr call_instr instr instr_list instr_tuple_instr global func_decl def_instr func_def_instr
+
 %start global
 %%
 
 global
-: instr_list
+: instr_list {
+	Global* ret = new Global();
+	ret->instrs = (list<Instr*>*)$1;
+	cout << ret->str() << endl;
+	$$ = ret;
+}
 ;
 
 instr_list
-: instr ';' instr_list
-| instr
-|
+: instr ';' instr_list {
+	list<Instr*>* ret = (list<Instr*>*)$3;
+	ret->push_front((Instr*)$1);
+	$$ = ret;
+}
+| instr {
+	list<Instr*>* ret = new list<Instr*>();
+	ret->push_front((Instr*)$1);
+	$$ = ret;
+}
+| {
+	list<Instr*>* ret = new list<Instr*>();
+	$$ = ret;
+}
 ;
 
 instr
-: def_instr
-| ret_instr
+: def_instr {
+	$$ = $1;
+}
+| ret_instr {
+	$$ = $1;
+}
 ;
 
 def_instr
-: var_def_instr
-| func_def_instr
+: var_def_instr {
+	$$ = new Unsupported();
+}
+| func_def_instr {
+	$$ = $1;
+}
 ;
 
 ret_instr
-: val_instr
-| ref_instr
+: val_instr {
+	$$ = $1;
+}
+| ref_instr {
+	$$ = $1;
+}
 ;
 
 val_instr
-: string_instr
-| integer_instr
-| instr_tuple_instr
-| value_tuple_instr
+: string_instr {
+	$$ = $1;
+}
+| integer_instr {
+	$$ = new Unsupported();
+}
+| instr_tuple_instr {
+	$$ = $1;
+}
+| value_tuple_instr {
+	$$ = new Unsupported();
+}
 ;
 
 ref_instr
-: call_instr
-| symbol_instr
-| dot_expr_instr
+: call_instr {
+	$$ = $1;
+}
+| symbol_instr {
+	$$ = $1;
+}
+| dot_expr_instr {
+	$$ = new Unsupported();
+}
 ;
 
 string_instr
-: STRING
+: STRING {
+	StringInstr* ret = new StringInstr();
+	ret->value = $1;
+	$$ = ret;
+}
 ;
 
 integer_instr
@@ -81,16 +131,48 @@ var_def_instr
 ;
 
 func_decl
-: ref_instr ref_instr IDENTIFIER params_tuple
+: ref_instr ref_instr IDENTIFIER params_tuple {
+	RefInstr* func_type = (RefInstr*)$1;
+	RefInstr* ret_type = (RefInstr*)$2;
+
+	SymbolInstr* func_sym = new SymbolInstr();
+	func_sym->name = $3;
+	
+	InstrTupleInstr* params = new InstrTupleInstr();
+	params->instrs = new list<Instr*>();
+	
+	SymbolInstr* def = new SymbolInstr();
+	def->name = "defun";
+	
+	CallInstr* ret = new CallInstr();
+	ret->ref = def;
+	ret->params = new list<RetInstr*>();
+	ret->params->push_back(func_type);
+	ret->params->push_back(func_sym);
+	ret->params->push_back(params);
+	ret->params->push_back(ret_type);
+	
+	$$ = ret;
+}
 ;
 
 func_def_instr
-: func_decl
-| func_decl '=' ret_instr
+: func_decl {
+	$$ = $1;
+}
+| func_decl '=' ret_instr {
+	CallInstr* ret = (CallInstr*)$1;
+	ret->params->push_back((RetInstr*)$3);
+	$$ = ret;
+}
 ;
 
 instr_tuple_instr
-: instr_block_begin instr_list instr_block_end
+: instr_block_begin instr_list instr_block_end {
+	InstrTupleInstr* ret = new InstrTupleInstr();
+	ret->instrs = (list<Instr*>*)$2;
+	$$ = ret;
+}
 ;
 
 instr_block_begin
@@ -124,7 +206,10 @@ param_list_element
 ;
 
 value_tuple_instr
-: value_tuple_begin value_list value_tuple_end
+: value_tuple_begin value_list value_tuple_end {
+	list<RetInstr*>* ret = (list<RetInstr*>*)$2;
+	$$ = ret;
+}
 ;
 
 value_tuple_begin
@@ -136,22 +221,50 @@ value_tuple_end
 ;
 
 value_list
-: value_list_element ',' value_list
-| value_list_element
-|
+: value_list_element ',' value_list {
+	list<RetInstr*>* ret = (list<RetInstr*>*)$3;
+	ret->push_front((RetInstr*)$1);
+	$$ = ret;
+}
+| value_list_element {
+	list<RetInstr*>* ret = new list<RetInstr*>();
+	ret->push_front((RetInstr*)$1);
+	$$ = ret;
+}
+| {
+	list<RetInstr*>* ret = new list<RetInstr*>();
+	$$ = ret;
+}
 ;
 
 value_list_element
-: ret_instr
+: ret_instr {
+	$$ = $1;
+}
 ;
 
 call_instr
-: ref_instr value_tuple_instr
-| ref_instr instr_tuple_instr
+: ref_instr value_tuple_instr {
+	CallInstr* ret = new CallInstr();
+	ret->ref = (RefInstr*)$1;
+	ret->params = (list<RetInstr*>*)$2;
+	$$ = ret;
+}
+| ref_instr instr_tuple_instr {
+	CallInstr* ret = new CallInstr();
+	ret->ref = (RefInstr*)$1;
+	ret->params = new list<RetInstr*>();
+	ret->params->push_front((RetInstr*)$2);
+	$$ = ret;
+}
 ;
 
 symbol_instr
-: IDENTIFIER
+: IDENTIFIER {
+	SymbolInstr* ret = new SymbolInstr();
+	ret->name = $1;
+	$$ = ret;
+}
 ;
 
 dot_expr_instr
