@@ -24,7 +24,7 @@ int yyerror (const char* s);
 
 %type<any> string_instr val_instr symbol_instr ret_instr value_list_element value_list ref_instr value_tuple_instr
 %type<any> call_instr instr instr_list instr_tuple_instr global func_decl def_instr func_def_instr dot_expr_instr
-%type<any> integer_instr var_decl var_def_instr
+%type<any> integer_instr var_decl var_def_instr param_list_element param_list params_tuple
 
 %start global
 %%
@@ -131,7 +131,11 @@ var_decl
 
 	SymbolInstr* var_sym = new SymbolInstr();
 	var_sym->name = $2;
-		
+
+	InstrTupleInstr* var_sym_instr = new InstrTupleInstr();
+	var_sym_instr->instrs = new list<Instr*>();
+	var_sym_instr->instrs->push_back(var_sym);
+
 	SymbolInstr* def = new SymbolInstr();
 	def->name = "define";
 	
@@ -140,7 +144,7 @@ var_decl
 	ret->params = new ValueTupleInstr();
 	ret->params->instrs = new list<RetInstr*>();
 	ret->params->instrs->push_back(var_type);
-	ret->params->instrs->push_back(var_sym);
+	ret->params->instrs->push_back(var_sym_instr);
 	
 	$$ = ret;
 }
@@ -164,9 +168,12 @@ func_decl
 
 	SymbolInstr* func_sym = new SymbolInstr();
 	func_sym->name = $3;
+
+	InstrTupleInstr* func_sym_instr = new InstrTupleInstr();
+	func_sym_instr->instrs = new list<Instr*>();
+	func_sym_instr->instrs->push_back(func_sym);
 	
-	InstrTupleInstr* params = new InstrTupleInstr();
-	params->instrs = new list<Instr*>();
+	InstrTupleInstr* params = (InstrTupleInstr*)$4;
 	
 	SymbolInstr* def = new SymbolInstr();
 	def->name = "defun";
@@ -176,7 +183,7 @@ func_decl
 	ret->params = new ValueTupleInstr();
 	ret->params->instrs = new list<RetInstr*>();
 	ret->params->instrs->push_back(func_type);
-	ret->params->instrs->push_back(func_sym);
+	ret->params->instrs->push_back(func_sym_instr);
 	ret->params->instrs->push_back(params);
 	ret->params->instrs->push_back(ret_type);
 	
@@ -212,8 +219,11 @@ instr_block_end
 ;
 
 params_tuple
-: params_tuple_begin param_list params_tuple_end
-| params_tuple_begin params_tuple_end
+: params_tuple_begin param_list params_tuple_end {
+	InstrTupleInstr* ret = new InstrTupleInstr();
+	ret->instrs = (list<Instr*>*)$2;
+	$$ = ret;
+}
 ;
 
 params_tuple_begin
@@ -225,12 +235,26 @@ params_tuple_end
 ;
 
 param_list
-: param_list_element ',' params_tuple
-| param_list_element
+: param_list_element ',' param_list {
+	list<Instr*>* ret = (list<Instr*>*)$3;
+	ret->push_front((Instr*)$1);
+	$$ = ret;
+}
+| param_list_element {
+	list<Instr*>* ret = new list<Instr*>();
+	ret->push_front((Instr*)$1);
+	$$ = ret;
+}
+| {
+	list<Instr*>* ret = new list<Instr*>();
+	$$ = ret;
+}
 ;
 
 param_list_element
-: var_def_instr
+: var_def_instr {
+	$$ = $1;
+}
 ;
 
 value_tuple_instr
