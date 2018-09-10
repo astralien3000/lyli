@@ -14,8 +14,8 @@ L[a-zA-Z_]
 %%
 "/*"		{ comment(); }
 "//".*          { count(); }
-\"[^\"]*\"      { count(); strncpy(yylval.str, yytext+1, strlen(yytext)-2); return(STRING); }
-{L}({L}|{D})*	{ count(); sprintf(yylval.str, "%s", yytext); return(IDENTIFIER); }
+\"[^\"]*\"      { count(); memset(yylval.str, 0, sizeof(yylval.str)); strncpy(yylval.str, yytext+1, strlen(yytext)-2); return(STRING); }
+{L}({L}|{D})*	{ count(); memset(yylval.str, 0, sizeof(yylval.str)); sprintf(yylval.str, "%s", yytext); return(IDENTIFIER); }
 {D}+    	{ count(); yylval.ival = atoi(yytext); return(CONSTANTI); }
 {D}+"."{D}*     { count(); yylval.fval = atof(yytext); return(CONSTANTF); }
 "+="		{ count(); return(ADD_ASSIGN); }

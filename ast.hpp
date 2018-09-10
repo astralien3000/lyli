@@ -94,6 +94,23 @@ struct InstrTupleInstr : ValInstr {
   }
 };
 
+struct ValueTupleInstr : ValInstr {
+  list<RetInstr*>* instrs;
+
+  virtual string str(void) {
+    string ret = "";
+	ret += "(";
+	for(auto it = instrs->begin() ; it != instrs->end() ; it++) {
+		if(it != instrs->begin()) {
+			ret += ",";
+		}
+		ret += (*it)->str();
+	}
+	ret += ")";
+	return ret;
+  }
+};
+
 struct RefInstr : RetInstr {};
 
 struct SymbolInstr : RefInstr {
@@ -106,19 +123,12 @@ struct SymbolInstr : RefInstr {
 
 struct CallInstr : RefInstr {
   RefInstr* ref;
-  list<RetInstr*>* params;
+  ValueTupleInstr* params;
 
   virtual string str(void) {
     string ret = ref->str();
-	ret += "(";
-	for(auto it = params->begin() ; it != params->end() ; it++) {
-		if(it != params->begin()) {
-			ret += ",";
-		}
-		ret += (*it)->str();
-	}
-	ret += ")";
-	return ret;
+    ret += params->str();
+	  return ret;
   }
 };
 

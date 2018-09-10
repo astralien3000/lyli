@@ -1,8 +1,6 @@
 %{
 #include "ast.hpp"
 
-#define STRING_MAX_LENGTH (1024)
-
 extern "C"
 {
 
@@ -14,7 +12,7 @@ int yyerror (const char* s);
 
 %}
 
-%union { float fval; long ival; char str[STRING_MAX_LENGTH]; void* any; }
+%union { float fval; long ival; char str[1024]; void* any; }
 
 %token <str>IDENTIFIER
 %token <str>STRING
@@ -26,7 +24,7 @@ int yyerror (const char* s);
 
 %type<any> string_instr val_instr symbol_instr ret_instr value_list_element value_list ref_instr value_tuple_instr
 %type<any> call_instr instr instr_list instr_tuple_instr global func_decl def_instr func_def_instr dot_expr_instr
-%type<any> integer_instr
+%type<any> integer_instr var_decl var_def_instr
 
 %start global
 %%
@@ -68,7 +66,7 @@ instr
 
 def_instr
 : var_def_instr {
-	$$ = new Unsupported();
+	$$ = $1;
 }
 | func_def_instr {
 	$$ = $1;
@@ -128,12 +126,35 @@ integer_instr
 ;
 
 var_decl
-: ref_instr IDENTIFIER
+: ref_instr IDENTIFIER {
+	RefInstr* var_type = (RefInstr*)$1;
+
+	SymbolInstr* var_sym = new SymbolInstr();
+	var_sym->name = $2;
+		
+	SymbolInstr* def = new SymbolInstr();
+	def->name = "define";
+	
+	CallInstr* ret = new CallInstr();
+	ret->ref = def;
+	ret->params = new ValueTupleInstr();
+	ret->params->instrs = new list<RetInstr*>();
+	ret->params->instrs->push_back(var_type);
+	ret->params->instrs->push_back(var_sym);
+	
+	$$ = ret;
+}
 ;
 
 var_def_instr
-: var_decl
-| var_decl '=' ret_instr
+: var_decl {
+	$$ = $1;
+}
+| var_decl '=' ret_instr {
+	CallInstr* ret = (CallInstr*)$1;
+	ret->params->instrs->push_back((RetInstr*)$3);
+	$$ = ret;
+}
 ;
 
 func_decl
@@ -152,11 +173,12 @@ func_decl
 	
 	CallInstr* ret = new CallInstr();
 	ret->ref = def;
-	ret->params = new list<RetInstr*>();
-	ret->params->push_back(func_type);
-	ret->params->push_back(func_sym);
-	ret->params->push_back(params);
-	ret->params->push_back(ret_type);
+	ret->params = new ValueTupleInstr();
+	ret->params->instrs = new list<RetInstr*>();
+	ret->params->instrs->push_back(func_type);
+	ret->params->instrs->push_back(func_sym);
+	ret->params->instrs->push_back(params);
+	ret->params->instrs->push_back(ret_type);
 	
 	$$ = ret;
 }
@@ -168,7 +190,7 @@ func_def_instr
 }
 | func_decl '=' ret_instr {
 	CallInstr* ret = (CallInstr*)$1;
-	ret->params->push_back((RetInstr*)$3);
+	ret->params->instrs->push_back((RetInstr*)$3);
 	$$ = ret;
 }
 ;
@@ -213,7 +235,8 @@ param_list_element
 
 value_tuple_instr
 : value_tuple_begin value_list value_tuple_end {
-	list<RetInstr*>* ret = (list<RetInstr*>*)$2;
+	ValueTupleInstr* ret = new ValueTupleInstr();
+	ret->instrs = (list<RetInstr*>*)$2;
 	$$ = ret;
 }
 ;
@@ -253,14 +276,15 @@ call_instr
 : ref_instr value_tuple_instr {
 	CallInstr* ret = new CallInstr();
 	ret->ref = (RefInstr*)$1;
-	ret->params = (list<RetInstr*>*)$2;
+	ret->params = (ValueTupleInstr*)$2;
 	$$ = ret;
 }
 | ref_instr instr_tuple_instr {
 	CallInstr* ret = new CallInstr();
 	ret->ref = (RefInstr*)$1;
-	ret->params = new list<RetInstr*>();
-	ret->params->push_front((RetInstr*)$2);
+	ret->params = new ValueTupleInstr();
+	ret->params->instrs = new list<RetInstr*>();
+	ret->params->instrs->push_front((RetInstr*)$2);
 	$$ = ret;
 }
 ;
@@ -286,9 +310,10 @@ dot_expr_instr
 	
 	CallInstr* ret = new CallInstr();
 	ret->ref = def;
-	ret->params = new list<RetInstr*>();
-	ret->params->push_back(left);
-	ret->params->push_back(right);
+	ret->params = new ValueTupleInstr();
+	ret->params->instrs = new list<RetInstr*>();
+	ret->params->instrs->push_back(left);
+	ret->params->instrs->push_back(right);
 	
 	$$ = ret;
 }
