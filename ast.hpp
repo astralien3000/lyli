@@ -61,6 +61,14 @@ struct StringInstr : ValInstr {
   }
 };
 
+struct IntegerInstr : ValInstr {
+  int value;
+
+  virtual string str(void) {
+    return std::to_string(value);
+  }
+};
+
 struct IntegerConstantInstr : ValInstr {
   int value;
 

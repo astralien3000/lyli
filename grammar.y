@@ -26,6 +26,7 @@ int yyerror (const char* s);
 
 %type<any> string_instr val_instr symbol_instr ret_instr value_list_element value_list ref_instr value_tuple_instr
 %type<any> call_instr instr instr_list instr_tuple_instr global func_decl def_instr func_def_instr dot_expr_instr
+%type<any> integer_instr
 
 %start global
 %%
@@ -88,7 +89,7 @@ val_instr
 	$$ = $1;
 }
 | integer_instr {
-	$$ = new Unsupported();
+	$$ = $1;
 }
 | instr_tuple_instr {
 	$$ = $1;
@@ -119,7 +120,11 @@ string_instr
 ;
 
 integer_instr
-: CONSTANTI
+: CONSTANTI {
+	IntegerInstr* ret = new IntegerInstr();
+	ret->value = $1;
+	$$ = ret;
+}
 ;
 
 var_decl
