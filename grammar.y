@@ -24,7 +24,8 @@ int yyerror (const char* s);
 %token TYPE_NAME
 %token INT FLOAT VOID
 
-%type<any> string_instr val_instr symbol_instr ret_instr value_list_element value_list ref_instr value_tuple_instr call_instr instr instr_list instr_tuple_instr global func_decl def_instr func_def_instr
+%type<any> string_instr val_instr symbol_instr ret_instr value_list_element value_list ref_instr value_tuple_instr
+%type<any> call_instr instr instr_list instr_tuple_instr global func_decl def_instr func_def_instr dot_expr_instr
 
 %start global
 %%
@@ -105,7 +106,7 @@ ref_instr
 	$$ = $1;
 }
 | dot_expr_instr {
-	$$ = new Unsupported();
+	$$ = $1;
 }
 ;
 
@@ -268,7 +269,24 @@ symbol_instr
 ;
 
 dot_expr_instr
-: ref_instr '.' symbol_instr
+: ref_instr '.' symbol_instr {
+	RetInstr* left = (RetInstr*)$1;
+
+	InstrTupleInstr* right = new InstrTupleInstr();
+	right->instrs = new list<Instr*>();
+	right->instrs->push_back((Instr*)$3);
+
+	SymbolInstr* def = new SymbolInstr();
+	def->name = "__op_dot__";
+	
+	CallInstr* ret = new CallInstr();
+	ret->ref = def;
+	ret->params = new list<RetInstr*>();
+	ret->params->push_back(left);
+	ret->params->push_back(right);
+	
+	$$ = ret;
+}
 ;
 
 %%
