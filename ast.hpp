@@ -7,31 +7,8 @@
 
 using namespace std;
 
-struct Instr;
-struct ValInstruction;
-struct DefInstruction;
-
-struct StringInstruction;
-struct IntegerConstantInstruction;
-
-struct SymbolExpr;
-struct Symbol;
-struct DotSymbolExpr;
-
-struct Tuple;
-struct InstrBlock;
-struct Call;
-
-struct Visitor {
-  virtual void visit(Instr* instr) = 0;
-};
-
 struct Instr {
   virtual string str(void) = 0;
-
-  virtual void accept(Visitor* visitor) {
-    visitor->visit(this);
-  }
 };
 
 struct Global {

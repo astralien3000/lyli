@@ -10,6 +10,8 @@ int yyerror (const char* s);
 
 }
 
+Global* global;
+
 %}
 
 %union { float fval; long ival; char str[1024]; void* any; }
@@ -31,10 +33,9 @@ int yyerror (const char* s);
 
 global
 : instr_list {
-	Global* ret = new Global();
-	ret->instrs = (list<Instr*>*)$1;
-	cout << ret->str() << endl;
-	$$ = ret;
+	global = new Global();
+	global->instrs = (list<Instr*>*)$1;
+	$$ = global;
 }
 ;
 
@@ -379,6 +380,8 @@ int main (int argc, char *argv[]) {
   }
 
   yyparse ();
+  
+  cout << global->str() << endl;
 
   free (file_name);
   return 0;
