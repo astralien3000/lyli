@@ -384,17 +384,24 @@ int main (int argc, char *argv[]) {
   cout << global->str() << endl;
 
   for(auto it = global->instrs->begin() ; it != global->instrs->end() ; it++) {
-	if((*it)->isValInstr()) {
-	  ValInstr* vinstr = (ValInstr*)(*it);
-	  if(vinstr->isStringInstr()) { cout << "STRING" << endl; }
-	  if(vinstr->isIntegerInstr()) { cout << "INT" << endl; }
-	  if(vinstr->isInstrTupleInstr()) { cout << "INSTR TUPLE" << endl; }
-	  if(vinstr->isValueTupleInstr()) { cout << "VAL TUPLE" << endl; }
-	}
 	if((*it)->isRefInstr()) {
 	  RefInstr* rinstr = (RefInstr*)(*it);
-	  if(rinstr->isSymbolInstr()) { cout << "SYMBOL" << endl; }
-	  if(rinstr->isCallInstr()) { cout << "CALL" << endl; }
+	  if(rinstr->isCallInstr()) {
+	    CallInstr* cinstr = (CallInstr*)rinstr;
+		if(cinstr->ref->isSymbolInstr()) {
+		  string sname = ((SymbolInstr*)cinstr->ref)->name;
+		  if(sname == "println") {
+		    for(auto it2 = cinstr->params->instrs->begin() ; it2 != cinstr->params->instrs->end() ; it2++) {
+		      if((*it2)->isRefInstr()) {cout << "PRINT REF" << endl;}
+		      if((*it2)->isValInstr()) {
+		        auto vparam = (ValInstr*)(*it2);
+				if(vparam->isStringInstr()) { cout << ((StringInstr*)vparam)->value << endl; }
+				if(vparam->isIntegerInstr()) { cout << ((IntegerInstr*)vparam)->value << endl; }
+		      }
+		    }
+		  }
+		}
+	  }
 	}
   }
 
