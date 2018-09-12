@@ -383,6 +383,21 @@ int main (int argc, char *argv[]) {
 
   cout << global->str() << endl;
 
+  for(auto it = global->instrs->begin() ; it != global->instrs->end() ; it++) {
+	if((*it)->isValInstr()) {
+	  ValInstr* vinstr = (ValInstr*)(*it);
+	  if(vinstr->isStringInstr()) { cout << "STRING" << endl; }
+	  if(vinstr->isIntegerInstr()) { cout << "INT" << endl; }
+	  if(vinstr->isInstrTupleInstr()) { cout << "INSTR TUPLE" << endl; }
+	  if(vinstr->isValueTupleInstr()) { cout << "VAL TUPLE" << endl; }
+	}
+	if((*it)->isRefInstr()) {
+	  RefInstr* rinstr = (RefInstr*)(*it);
+	  if(rinstr->isSymbolInstr()) { cout << "SYMBOL" << endl; }
+	  if(rinstr->isCallInstr()) { cout << "CALL" << endl; }
+	}
+  }
+
   free (file_name);
   return 0;
 }
