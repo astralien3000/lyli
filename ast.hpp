@@ -7,12 +7,12 @@
 
 using namespace std;
 
-struct Instr {
+struct RetInstr {
   virtual string str(void) = 0;
 };
 
 struct Global {
-  list<Instr*>* instrs;
+  list<RetInstr*>* instrs;
 
   virtual string str(void) {
     string ret = "";
@@ -25,8 +25,6 @@ struct Global {
 	return ret;
   }
 };
-
-struct RetInstr : Instr {};
 
 struct ValInstr : RetInstr {};
 
@@ -42,20 +40,12 @@ struct IntegerInstr : ValInstr {
   int value;
 
   virtual string str(void) {
-    return std::to_string(value);
-  }
-};
-
-struct IntegerConstantInstr : ValInstr {
-  int value;
-
-  virtual string str(void) {
     return to_string(value);
   }
 };
 
 struct InstrTupleInstr : ValInstr {
-  list<Instr*>* instrs;
+  list<RetInstr*>* instrs;
 
   virtual string str(void) {
     string ret = "";

@@ -34,24 +34,24 @@ Global* global;
 global
 : instr_list {
 	global = new Global();
-	global->instrs = (list<Instr*>*)$1;
+	global->instrs = (list<RetInstr*>*)$1;
 	$$ = global;
 }
 ;
 
 instr_list
 : instr ';' instr_list {
-	list<Instr*>* ret = (list<Instr*>*)$3;
-	ret->push_front((Instr*)$1);
+	list<RetInstr*>* ret = (list<RetInstr*>*)$3;
+	ret->push_front((RetInstr*)$1);
 	$$ = ret;
 }
 | instr {
-	list<Instr*>* ret = new list<Instr*>();
-	ret->push_front((Instr*)$1);
+	list<RetInstr*>* ret = new list<RetInstr*>();
+	ret->push_front((RetInstr*)$1);
 	$$ = ret;
 }
 | {
-	list<Instr*>* ret = new list<Instr*>();
+	list<RetInstr*>* ret = new list<RetInstr*>();
 	$$ = ret;
 }
 ;
@@ -134,7 +134,7 @@ var_decl
 	var_sym->name = $2;
 
 	InstrTupleInstr* var_sym_instr = new InstrTupleInstr();
-	var_sym_instr->instrs = new list<Instr*>();
+	var_sym_instr->instrs = new list<RetInstr*>();
 	var_sym_instr->instrs->push_back(var_sym);
 
 	SymbolInstr* def = new SymbolInstr();
@@ -171,7 +171,7 @@ func_decl
 	func_sym->name = $3;
 
 	InstrTupleInstr* func_sym_instr = new InstrTupleInstr();
-	func_sym_instr->instrs = new list<Instr*>();
+	func_sym_instr->instrs = new list<RetInstr*>();
 	func_sym_instr->instrs->push_back(func_sym);
 	
 	InstrTupleInstr* params = (InstrTupleInstr*)$4;
@@ -206,7 +206,7 @@ func_def_instr
 instr_tuple_instr
 : instr_block_begin instr_list instr_block_end {
 	InstrTupleInstr* ret = new InstrTupleInstr();
-	ret->instrs = (list<Instr*>*)$2;
+	ret->instrs = (list<RetInstr*>*)$2;
 	$$ = ret;
 }
 ;
@@ -222,7 +222,7 @@ instr_block_end
 params_tuple
 : params_tuple_begin param_list params_tuple_end {
 	InstrTupleInstr* ret = new InstrTupleInstr();
-	ret->instrs = (list<Instr*>*)$2;
+	ret->instrs = (list<RetInstr*>*)$2;
 	$$ = ret;
 }
 ;
@@ -237,17 +237,17 @@ params_tuple_end
 
 param_list
 : param_list_element ',' param_list {
-	list<Instr*>* ret = (list<Instr*>*)$3;
-	ret->push_front((Instr*)$1);
+	list<RetInstr*>* ret = (list<RetInstr*>*)$3;
+	ret->push_front((RetInstr*)$1);
 	$$ = ret;
 }
 | param_list_element {
-	list<Instr*>* ret = new list<Instr*>();
-	ret->push_front((Instr*)$1);
+	list<RetInstr*>* ret = new list<RetInstr*>();
+	ret->push_front((RetInstr*)$1);
 	$$ = ret;
 }
 | {
-	list<Instr*>* ret = new list<Instr*>();
+	list<RetInstr*>* ret = new list<RetInstr*>();
 	$$ = ret;
 }
 ;
@@ -327,8 +327,8 @@ dot_expr_instr
 	RetInstr* left = (RetInstr*)$1;
 
 	InstrTupleInstr* right = new InstrTupleInstr();
-	right->instrs = new list<Instr*>();
-	right->instrs->push_back((Instr*)$3);
+	right->instrs = new list<RetInstr*>();
+	right->instrs->push_back((RetInstr*)$3);
 
 	SymbolInstr* def = new SymbolInstr();
 	def->name = "__op_dot__";
@@ -380,7 +380,7 @@ int main (int argc, char *argv[]) {
   }
 
   yyparse ();
-  
+
   cout << global->str() << endl;
 
   free (file_name);
