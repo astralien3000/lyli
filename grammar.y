@@ -1,5 +1,6 @@
 %{
 #include "ast.hpp"
+#include "ctx.hpp"
 
 extern "C"
 {
@@ -361,6 +362,41 @@ int yyerror (const char *s) {
   return 0;
 }
 
+void ctx_print(Context* ctx, int indent = 0) {
+  for(int i = 0 ; i < indent ; i++) cout << " ";
+  cout << ctx->name;
+  if(ctx->type) {
+    cout << " -> ";
+    cout << ctx->type->name;
+  }
+  cout << endl;
+  for(auto it = ctx->children.begin() ; it != ctx->children.end() ; it++) {
+    ctx_print(*it, indent+1);
+  }
+  if(ctx->next) {
+    ctx_print(ctx->next, indent);
+  }
+};
+
+Context* find(Context* cur, string name) {
+	if(!cur) {
+		return nullptr;
+	}
+	
+	if(cur->name == name) {
+		return cur;
+	}
+	else if(cur->previous) {
+		return find(cur->previous, name);
+	}
+	else {
+		return nullptr;
+	}
+}
+
+void println_int(int val) { cout << val << endl; }
+void println_str(string val) { cout << val << endl; }
+
 int main (int argc, char *argv[]) {
   FILE *input = NULL;
   if (argc==2) {
@@ -383,25 +419,101 @@ int main (int argc, char *argv[]) {
 
   cout << global->str() << endl;
 
+  Context* root = new Context();
+  root->name = "root";
+
+  Context* type = new Context();
+  type->name = "type";
+  type->type = type;
+
+  root->children.push_back(type);
+
+  Context* int_type = new Context();
+  int_type->name = "int";
+  int_type->type = type;
+
+  int_type->previous = type;
+  type->next = int_type;
+
+  Context* s_type = new Context();
+  s_type->name = "string";
+  s_type->type = type;
+
+  s_type->previous = int_type;
+  int_type->next = s_type;
+
+  Context* f_type = new Context();
+  f_type->name = "fn";
+  f_type->type = type;
+
+  f_type->previous = s_type;
+  s_type->next = f_type;
+
+  Context* println_int_f = new Context();
+  println_int_f->name = "println";
+  println_int_f->type = f_type;
+  println_int_f->value = (void*)println_int;
+
+  println_int_f->previous = f_type;
+  f_type->next = println_int_f;
+
+  Context* println_int_arg1 = new Context();
+  println_int_arg1->name = "$1";
+  println_int_arg1->previous = println_int_f;
+  println_int_arg1->type = int_type;
+
+  println_int_f->children.push_back(println_int_arg1);
+  
+  Context* println_s_f = new Context();
+  println_s_f->name = "println";
+  println_s_f->type = f_type;
+  println_s_f->value = (void*)println_str;
+
+  println_s_f->previous = println_int_f;
+  println_int_f->next = println_s_f;
+
+  Context* println_s_arg1 = new Context();
+  println_s_arg1->name = "$1";
+  println_s_arg1->previous = println_s_f;
+  println_s_arg1->type = s_type;
+
+  println_s_f->children.push_back(println_s_arg1);
+
+  Context* cur = println_s_f;
+  
+  ctx_print(root);
+
   for(auto it = global->instrs->begin() ; it != global->instrs->end() ; it++) {
 	if((*it)->isRefInstr()) {
-	  RefInstr* rinstr = (RefInstr*)(*it);
-	  if(rinstr->isCallInstr()) {
-	    CallInstr* cinstr = (CallInstr*)rinstr;
-		if(cinstr->ref->isSymbolInstr()) {
-		  string sname = ((SymbolInstr*)cinstr->ref)->name;
-		  if(sname == "println") {
-		    for(auto it2 = cinstr->params->instrs->begin() ; it2 != cinstr->params->instrs->end() ; it2++) {
-		      if((*it2)->isRefInstr()) {cout << "PRINT REF" << endl;}
-		      if((*it2)->isValInstr()) {
-		        auto vparam = (ValInstr*)(*it2);
-				if(vparam->isStringInstr()) { cout << ((StringInstr*)vparam)->value << endl; }
-				if(vparam->isIntegerInstr()) { cout << ((IntegerInstr*)vparam)->value << endl; }
-		      }
-		    }
-		  }
+	    RefInstr* rinstr = (RefInstr*)(*it);
+	    if(rinstr->isCallInstr()) {
+	    	CallInstr* cinstr = (CallInstr*)rinstr;
+			if(cinstr->ref->isSymbolInstr()) {
+				if(cinstr->params->instrs->size() == 1 && cinstr->params->instrs->front()->isValInstr()) {
+		  			auto vparam = (ValInstr*)(cinstr->params->instrs->front());
+					if(vparam->isStringInstr()) {
+			  			Context* found = find(cur, ((SymbolInstr*)cinstr->ref)->name);
+						while(found) {
+							if(found->children.front()->type->name == "string") {
+								((void(*)(string))found->value)(((StringInstr*)vparam)->value);
+								break;
+							}
+							found = find(found->previous, ((SymbolInstr*)cinstr->ref)->name);
+						}
+					}
+					if(vparam->isIntegerInstr()) {
+			  			Context* found = find(cur, ((SymbolInstr*)cinstr->ref)->name);
+						while(found) {
+							if(found->children.front()->type->name == "int") {
+								((void(*)(int))found->value)(((IntegerInstr*)vparam)->value);
+								break;
+							}
+							found = find(found->previous, ((SymbolInstr*)cinstr->ref)->name);
+						}
+					}
+		      	}
+			}
 		}
-	  }
 	}
   }
 
