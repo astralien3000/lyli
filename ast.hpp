@@ -14,21 +14,6 @@ struct RetInstr {
   virtual bool isRefInstr(void) { return false; }
 };
 
-struct Global {
-  list<RetInstr*>* instrs;
-
-  virtual string str(void) {
-    string ret = "";
-    for(auto it = instrs->begin() ; it != instrs->end() ; it++) {
-      if(it != instrs->begin()) {
-        ret += ";\n";
-      }
-      ret += (*it)->str();
-    }
-    return ret;
-  }
-};
-
 struct ValInstr : RetInstr {
   bool isValInstr(void) override { return true; }
 
@@ -73,6 +58,19 @@ struct InstrTupleInstr : ValInstr {
       ret += (*it)->str();
     }
     ret += "}";
+    return ret;
+  }
+};
+
+struct Global : InstrTupleInstr {
+  virtual string str(void) {
+    string ret = "";
+    for(auto it = instrs->begin() ; it != instrs->end() ; it++) {
+      if(it != instrs->begin()) {
+        ret += ";\n";
+      }
+      ret += (*it)->str();
+    }
     return ret;
   }
 };

@@ -370,8 +370,8 @@ void ctx_print(Context* ctx, int indent = 0) {
     cout << ctx->type->name;
   }
   cout << endl;
-  for(auto it = ctx->children.begin() ; it != ctx->children.end() ; it++) {
-    ctx_print(*it, indent+1);
+  if(ctx->child) {
+	  ctx_print(ctx->child, indent+1);
   }
   if(ctx->next) {
     ctx_print(ctx->next, indent);
@@ -419,65 +419,32 @@ int main (int argc, char *argv[]) {
 
   cout << global->str() << endl;
 
-  Context* root = new Context();
-  root->name = "root";
+  Context* root = new Context("root", nullptr);
 
-  Context* type = new Context();
-  type->name = "type";
+  Context* type = new Context("type", nullptr);
   type->type = type;
+  type->setParent(root);
 
-  root->children.push_back(type);
+  Context* int_type = new Context("int", type);
+  int_type->setPrevious(type);
 
-  Context* int_type = new Context();
-  int_type->name = "int";
-  int_type->type = type;
+  Context* s_type = new Context("string", type);
+  s_type->setPrevious(int_type);
 
-  int_type->previous = type;
-  type->next = int_type;
+  Context* f_type = new Context("function", type);
+  f_type->setPrevious(s_type);
 
-  Context* s_type = new Context();
-  s_type->name = "string";
-  s_type->type = type;
+  Context* println_int_f = new Context("println", f_type, (void*)println_int);
+  println_int_f->setPrevious(f_type);
 
-  s_type->previous = int_type;
-  int_type->next = s_type;
-
-  Context* f_type = new Context();
-  f_type->name = "fn";
-  f_type->type = type;
-
-  f_type->previous = s_type;
-  s_type->next = f_type;
-
-  Context* println_int_f = new Context();
-  println_int_f->name = "println";
-  println_int_f->type = f_type;
-  println_int_f->value = (void*)println_int;
-
-  println_int_f->previous = f_type;
-  f_type->next = println_int_f;
-
-  Context* println_int_arg1 = new Context();
-  println_int_arg1->name = "$1";
-  println_int_arg1->previous = println_int_f;
-  println_int_arg1->type = int_type;
-
-  println_int_f->children.push_back(println_int_arg1);
+  Context* println_int_arg1 = new Context("$1", int_type);
+  println_int_arg1->setParent(println_int_f);
   
-  Context* println_s_f = new Context();
-  println_s_f->name = "println";
-  println_s_f->type = f_type;
-  println_s_f->value = (void*)println_str;
+  Context* println_s_f = new Context("println", f_type, (void*)println_str);
+  println_s_f->setPrevious(println_int_f);
 
-  println_s_f->previous = println_int_f;
-  println_int_f->next = println_s_f;
-
-  Context* println_s_arg1 = new Context();
-  println_s_arg1->name = "$1";
-  println_s_arg1->previous = println_s_f;
-  println_s_arg1->type = s_type;
-
-  println_s_f->children.push_back(println_s_arg1);
+  Context* println_s_arg1 = new Context("$1", s_type);
+  println_s_arg1->setParent(println_s_f);
 
   Context* cur = println_s_f;
   
@@ -494,7 +461,7 @@ int main (int argc, char *argv[]) {
 					if(vparam->isStringInstr()) {
 			  			Context* found = find(cur, ((SymbolInstr*)cinstr->ref)->name);
 						while(found) {
-							if(found->children.front()->type->name == "string") {
+							if(found->child->type->name == "string") {
 								((void(*)(string))found->value)(((StringInstr*)vparam)->value);
 								break;
 							}
@@ -504,7 +471,7 @@ int main (int argc, char *argv[]) {
 					if(vparam->isIntegerInstr()) {
 			  			Context* found = find(cur, ((SymbolInstr*)cinstr->ref)->name);
 						while(found) {
-							if(found->children.front()->type->name == "int") {
+							if(found->child->type->name == "int") {
 								((void(*)(int))found->value)(((IntegerInstr*)vparam)->value);
 								break;
 							}
