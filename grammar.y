@@ -1,6 +1,6 @@
 %{
 #include "ast.hpp"
-#include "ctx.hpp"
+#include "env.hpp"
 
 extern "C"
 {
@@ -362,40 +362,19 @@ int yyerror (const char *s) {
   return 0;
 }
 
-void ctx_print(Context* ctx, int indent = 0) {
-  for(int i = 0 ; i < indent ; i++) cout << " ";
-  cout << ctx->name;
-  if(ctx->type) {
-    cout << " -> ";
-    cout << ctx->type->name;
-  }
-  cout << endl;
-  if(ctx->child) {
-	  ctx_print(ctx->child, indent+1);
-  }
-  if(ctx->next) {
-    ctx_print(ctx->next, indent);
-  }
-};
-
-Context* find(Context* cur, string name) {
-	if(!cur) {
-		return nullptr;
+ostream& operator<<(ostream& os, const Env& env) {
+	for(auto it = env.begin() ; it != env.end() ; it++) {
+		os << it->first.type << " " << it->first.symbol << " = " << it->second << endl;
 	}
-	
-	if(cur->name == name) {
-		return cur;
-	}
-	else if(cur->previous) {
-		return find(cur->previous, name);
-	}
-	else {
-		return nullptr;
-	}
+	return os;
 }
 
-void println_int(int val) { cout << val << endl; }
-void println_str(string val) { cout << val << endl; }
+Env root;
+Env fun;
+
+void println(int val) { cout << val << endl; }
+void println(string val) { cout << val << endl; }
+void println(const char* val) { cout << val << endl; }
 
 int main (int argc, char *argv[]) {
   FILE *input = NULL;
@@ -419,70 +398,29 @@ int main (int argc, char *argv[]) {
 
   cout << global->str() << endl;
 
-  Context* root = new Context("root", nullptr);
+  fun.previous = &root;
 
-  Context* type = new Context("type", nullptr);
-  type->type = type;
-  type->setParent(root);
+  root[SymbolTypeKey{"type", "type"}] = nullptr;
+  root[SymbolTypeKey{"int", "type"}] = nullptr;
+  root[SymbolTypeKey{"string", "type"}] = nullptr;
+  root[SymbolTypeKey{"void", "type"}] = nullptr;
+  root[SymbolTypeKey{"void(int)", "type"}] = nullptr;
+  root[SymbolTypeKey{"void(string)", "type"}] = nullptr;
+  root[SymbolTypeKey{"println", "void(int)"}] = (void*)(void(*)(int))println;
+  root[SymbolTypeKey{"println", "void(string)"}] = (void*)(void(*)(string))println;
 
-  Context* int_type = new Context("int", type);
-  int_type->setPrevious(type);
+  cout << root;
 
-  Context* s_type = new Context("string", type);
-  s_type->setPrevious(int_type);
+  println(42);
 
-  Context* f_type = new Context("function", type);
-  f_type->setPrevious(s_type);
+  int test = 666;
 
-  Context* println_int_f = new Context("println", f_type, (void*)println_int);
-  println_int_f->setPrevious(f_type);
+  asm("push %rdi\n");
+  asm("mov %0, %%edi\n" :: "r" (test));
+  asm("call %0\n" :: "r" ((void(*)(int))println));
+  asm("pop %rdi\n");
 
-  Context* println_int_arg1 = new Context("$1", int_type);
-  println_int_arg1->setParent(println_int_f);
-  
-  Context* println_s_f = new Context("println", f_type, (void*)println_str);
-  println_s_f->setPrevious(println_int_f);
-
-  Context* println_s_arg1 = new Context("$1", s_type);
-  println_s_arg1->setParent(println_s_f);
-
-  Context* cur = println_s_f;
-  
-  ctx_print(root);
-
-  for(auto it = global->instrs->begin() ; it != global->instrs->end() ; it++) {
-	if((*it)->isRefInstr()) {
-	    RefInstr* rinstr = (RefInstr*)(*it);
-	    if(rinstr->isCallInstr()) {
-	    	CallInstr* cinstr = (CallInstr*)rinstr;
-			if(cinstr->ref->isSymbolInstr()) {
-				if(cinstr->params->instrs->size() == 1 && cinstr->params->instrs->front()->isValInstr()) {
-		  			auto vparam = (ValInstr*)(cinstr->params->instrs->front());
-					if(vparam->isStringInstr()) {
-			  			Context* found = find(cur, ((SymbolInstr*)cinstr->ref)->name);
-						while(found) {
-							if(found->child->type->name == "string") {
-								((void(*)(string))found->value)(((StringInstr*)vparam)->value);
-								break;
-							}
-							found = find(found->previous, ((SymbolInstr*)cinstr->ref)->name);
-						}
-					}
-					if(vparam->isIntegerInstr()) {
-			  			Context* found = find(cur, ((SymbolInstr*)cinstr->ref)->name);
-						while(found) {
-							if(found->child->type->name == "int") {
-								((void(*)(int))found->value)(((IntegerInstr*)vparam)->value);
-								break;
-							}
-							found = find(found->previous, ((SymbolInstr*)cinstr->ref)->name);
-						}
-					}
-		      	}
-			}
-		}
-	}
-  }
+  cout << "LOOL" << endl;
 
   free (file_name);
   return 0;
