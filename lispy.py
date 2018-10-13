@@ -1,31 +1,78 @@
-################ Scheme Interpreter in Python
+#!/usr/bin/python
+# coding: UTF-8
 
-## (c) Peter Norvig, 2010; See http://norvig.com/lispy2.html
+"""
+Even Simpler Lisp (ESL) Interpreter
 
-################ Symbol, Procedure, classes
+Copyright (C) 2018 Loïc Dauphin <astralien3000@yahoo.fr>
 
-from __future__ import division
-import re, sys, StringIO
+Based on the work :
+Copyright (C) 2010 Peter Norvig, see http://norvig.com/lispy2.html
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+################ Symbol, Func, classes
+
+import re
+import sys
+import StringIO
+import random
 
 class Symbol(str): pass
 
-def Sym(s, symbol_table={}):
-    "Find or create unique Symbol entry for str s in symbol table."
-    if s not in symbol_table: symbol_table[s] = Symbol(s)
-    return symbol_table[s]
+_quote = Symbol("quote")
+_quasiquote = Symbol("quasiquote")
+_unquote = Symbol("unquote")
+_unquotesplicing = Symbol("unquote-splicing")
 
-_quote, _if, _set, _define, _lambda, _begin, _definemacro, = map(Sym, 
-"quote   if   set!  define   lambda   begin   define-macro".split())
+class Func(object):
+    "A user-defined procedure."
+    def __init__(self, params, exp, env):
+        self.params, self.exp, self.env = params, exp, env
+    def __call__(self, *args):
+        global cur_env
+        prev_env = cur_env
+        cur_env =  Env(self.params, args, self.env)
+        ret = eval(self.exp)
+        cur_env = prev_env
+        return ret
 
-_quasiquote, _unquote, _unquotesplicing = map(Sym,
-"quasiquote   unquote   unquote-splicing".split())
+class Macro(object):
+    "A user-defined macro."
+    def __init__(self, params, exp):
+        self.params, self.exp = params, exp
+    def __call__(self, *args):
+        global cur_env
+        cur_env = Env((), (), Env(self.params, args, cur_env))
+        ret = eval(eval(self.exp))
+        macro_env = cur_env
+        cur_env = cur_env.outer.outer
+        cur_env.update(macro_env)
+        return ret
 
-class Procedure(object):
-    "A user-defined Scheme procedure."
-    def __init__(self, parms, exp, env):
-        self.parms, self.exp, self.env = parms, exp, env
-    def __call__(self, *args): 
-        return eval(self.exp, Env(self.parms, args, self.env))
+class NativeMacro(Macro):
+    "A callable object"
+    def __init__(self, func):
+        self.func = func
+    def __call__(self, *args):
+        return self.func(*args)
 
 ################ parse, read, and user interaction
 
@@ -33,7 +80,7 @@ def parse(inport):
     "Parse a program: read and expand/error-check it."
     # Backwards compatibility: given a str, convert it to an InPort
     if isinstance(inport, str): inport = InPort(StringIO.StringIO(inport))
-    return expand(read(inport), toplevel=True)
+    return read(inport)
 
 eof_object = Symbol('#<eof-object>') # Note: uninterned; can't be read
 
@@ -89,16 +136,16 @@ def atom(token):
         except ValueError:
             try: return complex(token.replace('i', 'j', 1))
             except ValueError:
-                return Sym(token)
+                return Symbol(token)
 
 def to_string(x):
     "Convert a Python object back into a Lisp-readable string."
     if x is True: return "#t"
     elif x is False: return "#f"
-    elif isa(x, Symbol): return x
-    elif isa(x, str): return '"%s"' % x.encode('string_escape').replace('"',r'\"')
-    elif isa(x, list): return '('+' '.join(map(to_string, x))+')'
-    elif isa(x, complex): return str(x).replace('j', 'i')
+    elif isinstance(x, Symbol): return x
+    elif isinstance(x, str): return '"%s"' % x.encode('string_escape').replace('"',r'\"')
+    elif isinstance(x, list): return '('+' '.join(map(to_string, x))+')'
+    elif isinstance(x, complex): return str(x).replace('j', 'i')
     else: return str(x)
 
 def load(filename):
@@ -122,23 +169,25 @@ def repl(prompt='lispy> ', inport=InPort(sys.stdin), out=sys.stdout):
 
 class Env(dict):
     "An environment: a dict of {'var':val} pairs, with an outer Env."
-    def __init__(self, parms=(), args=(), outer=None):
+    def __init__(self, params=(), args=(), outer=None):
         # Bind parm list to corresponding args, or single parm to list of args
         self.outer = outer
-        if isa(parms, Symbol): 
-            self.update({parms:list(args)})
+        if isinstance(params, Symbol): 
+            self.update({params:list(args)})
         else: 
-            if len(args) != len(parms):
+            if len(args) != len(params):
                 raise TypeError('expected %s, given %s, ' 
-                                % (to_string(parms), to_string(args)))
-            self.update(zip(parms,args))
+                                % (to_string(params), to_string(args)))
+            self.update(zip(params,args))
     def find(self, var):
         "Find the innermost Env where var appears."
         if var in self: return self
         elif self.outer is None: raise LookupError(var)
         else: return self.outer.find(var)
 
-def is_pair(x): return x != [] and isa(x, list)
+cur_env = Env()
+
+def is_pair(x): return x != [] and isinstance(x, list)
 def cons(x, y): return [x]+y
 
 def callcc(proc):
@@ -151,168 +200,148 @@ def callcc(proc):
         if w is ball: return ball.retval
         else: raise w
 
+def macro_set(sym, val):
+    cur_env.find(sym)[sym] = eval(val)
+    return None
+
+def macro_define(sym, val):
+    cur_env[sym] = eval(val)
+    return None
+
+def macro_lambda(args, exp):
+    return Func(args, exp, cur_env)
+
+def macro_macro(args, exp):
+    return Macro(args, exp)
+
+def macro_if(cond, then_exp, else_exp):
+    return eval(then_exp if eval(cond) else else_exp)
+
+def macro_begin(*args):
+    args = list(args)
+    for exp in args:
+        eval(exp)
+    return args[-1]
+
+def macro_quote(arg):
+    return arg
+
+def macro_quasiquote(x):
+    """Expand `x => 'x; `,x => x; `(,@x y) => (append x y) """
+    if not is_pair(x):
+        return x
+    if x[0] is _unquote:
+        return eval(x[1])
+    elif is_pair(x[0]) and x[0][0] is _unquotesplicing:
+        return eval(x[0][1]) + macro_quasiquote(x[1:])
+    elif len(x) == 1:
+        return [macro_quasiquote(x[0])]
+    else:
+        return [macro_quasiquote(x[0]), macro_quasiquote(x[1:])]
+
 def add_globals(self):
-    "Add some Scheme standard procedures."
+    "Add some standard procedures."
     import math, cmath, operator as op
+    self.update({
+        'fn': NativeMacro(macro_lambda),
+        'macro': NativeMacro(macro_macro),
+
+        _quote: NativeMacro(macro_quote),
+
+        _quasiquote: NativeMacro(macro_quasiquote),
+
+        'set': NativeMacro(macro_set),
+        'def': NativeMacro(macro_define),
+        'if': NativeMacro(macro_if),
+        'begin': NativeMacro(macro_begin),
+    })
     self.update(vars(math))
     self.update(vars(cmath))
     self.update({
-     '+':op.add, '-':op.sub, '*':op.mul, '/':op.div, 'not':op.not_, 
-     '>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq, 
-     'equal?':op.eq, 'eq?':op.is_, 'length':len, 'cons':cons,
-     'car':lambda x:x[0], 'cdr':lambda x:x[1:], 'append':op.add,  
-     'list':lambda *x:list(x), 'list?': lambda x:isa(x,list),
-     'null?':lambda x:x==[], 'symbol?':lambda x: isa(x, Symbol),
-     'boolean?':lambda x: isa(x, bool), 'pair?':is_pair, 
-     'port?': lambda x:isa(x,file), 'apply':lambda proc,l: proc(*l), 
-     'eval':lambda x: eval(expand(x)), 'load':lambda fn: load(fn), 'call/cc':callcc,
-     'open-input-file':open,'close-input-port':lambda p: p.file.close(), 
-     'open-output-file':lambda f:open(f,'w'), 'close-output-port':lambda p: p.close(),
-     'eof-object?':lambda x:x is eof_object, 'read-char':readchar,
-     'read':read, 'write':lambda x,port=sys.stdout:port.write(to_string(x)),
-     'display':lambda x,port=sys.stdout:port.write(x if isa(x,str) else to_string(x))})
+        '+':op.add,
+        '-':op.sub,
+        '*':op.mul,
+        '/':op.div,
+        'not':op.not_, 
+        '>':op.gt,
+        '<':op.lt,
+        '>=':op.ge,
+        '<=':op.le,
+        '=':op.eq, 
+        'equal?':op.eq,
+        'eq?':op.is_,
+        'length':len,
+        'cons':cons,
+        'car':lambda x:x[0],
+        'cdr':lambda x:x[1:],
+        'append':op.add,  
+        'list':lambda *x:list(x),
+        'list?': lambda x:isinstance(x,list),
+        'null?':lambda x:x==[],
+        'symbol?':lambda x: isinstance(x, Symbol),
+        'boolean?':lambda x: isinstance(x, bool),
+        'pair?':is_pair, 
+        'apply':lambda proc,l: proc(*l),
+        'eval':lambda x: eval(expand(x)),
+        'print':lambda x,port=sys.stdout:port.write(x if isinstance(x,str) else to_string(x)),
+        'rand': lambda val: int(random.random() * val),
+    })
     return self
 
-isa = isinstance
+cur_env = add_globals(cur_env)
 
-global_env = add_globals(Env())
+################ eval
 
-################ eval (tail recursive)
-
-def eval(x, env=global_env):
-    "Evaluate an expression in an environment."
-    while True:
-        if isa(x, Symbol):       # variable reference
-            return env.find(x)[x]
-        elif not isa(x, list):   # constant literal
-            return x                
-        elif x[0] is _quote:     # (quote exp)
-            (_, exp) = x
-            return exp
-        elif x[0] is _if:        # (if test conseq alt)
-            (_, test, conseq, alt) = x
-            x = (conseq if eval(test, env) else alt)
-        elif x[0] is _set:       # (set! var exp)
-            (_, var, exp) = x
-            env.find(var)[var] = eval(exp, env)
-            return None
-        elif x[0] is _define:    # (define var exp)
-            (_, var, exp) = x
-            env[var] = eval(exp, env)
-            return None
-        elif x[0] is _lambda:    # (lambda (var*) exp)
-            (_, vars, exp) = x
-            return Procedure(vars, exp, env)
-        elif x[0] is _begin:     # (begin exp+)
-            for exp in x[1:-1]:
-                eval(exp, env)
-            x = x[-1]
-        else:                    # (proc exp*)
-            exps = [eval(exp, env) for exp in x]
-            proc = exps.pop(0)
-            if isa(proc, Procedure):
-                x = proc.exp
-                env = Env(proc.parms, exps, proc.env)
-            else:
-                return proc(*exps)
-
-################ expand
-
-def expand(x, toplevel=False):
-    "Walk tree of x, making optimizations/fixes, and signaling SyntaxError."
-    require(x, x!=[])                    # () => Error
-    if not isa(x, list):                 # constant => unchanged
+def eval(x):
+    global cur_env
+    if isinstance(x, Symbol):
+        return cur_env.find(x)[x]
+    elif not isinstance(x, list):
         return x
-    elif x[0] is _quote:                 # (quote exp)
-        require(x, len(x)==2)
-        return x
-    elif x[0] is _if:                    
-        if len(x)==3: x = x + [None]     # (if t c) => (if t c None)
-        require(x, len(x)==4)
-        return map(expand, x)
-    elif x[0] is _set:                   
-        require(x, len(x)==3); 
-        var = x[1]                       # (set! non-var exp) => Error
-        require(x, isa(var, Symbol), "can set! only a symbol")
-        return [_set, var, expand(x[2])]
-    elif x[0] is _define or x[0] is _definemacro: 
-        require(x, len(x)>=3)            
-        _def, v, body = x[0], x[1], x[2:]
-        if isa(v, list) and v:           # (define (f args) body)
-            f, args = v[0], v[1:]        #  => (define f (lambda (args) body))
-            return expand([_def, f, [_lambda, args]+body])
-        else:
-            require(x, len(x)==3)        # (define non-var/list exp) => Error
-            require(x, isa(v, Symbol), "can define only a symbol")
-            exp = expand(x[2])
-            if _def is _definemacro:     
-                require(x, toplevel, "define-macro only allowed at top level")
-                proc = eval(exp)       
-                require(x, callable(proc), "macro must be a procedure")
-                macro_table[v] = proc    # (define-macro v proc)
-                return None              #  => None; add v:proc to macro_table
-            return [_define, v, exp]
-    elif x[0] is _begin:
-        if len(x)==1: return None        # (begin) => None
-        else: return [expand(xi, toplevel) for xi in x]
-    elif x[0] is _lambda:                # (lambda (x) e1 e2) 
-        require(x, len(x)>=3)            #  => (lambda (x) (begin e1 e2))
-        vars, body = x[1], x[2:]
-        require(x, (isa(vars, list) and all(isa(v, Symbol) for v in vars))
-                or isa(vars, Symbol), "illegal lambda argument list")
-        exp = body[0] if len(body) == 1 else [_begin] + body
-        return [_lambda, vars, expand(exp)]   
-    elif x[0] is _quasiquote:            # `x => expand_quasiquote(x)
-        require(x, len(x)==2)
-        return expand_quasiquote(x[1])
-    elif isa(x[0], Symbol) and x[0] in macro_table:
-        return expand(macro_table[x[0]](*x[1:]), toplevel) # (m arg...) 
-    else:                                #        => macroexpand if m isa macro
-        return map(expand, x)            # (f arg...) => expand each
-
-def require(x, predicate, msg="wrong length"):
-    "Signal a syntax error if predicate is false."
-    if not predicate: raise SyntaxError(to_string(x)+': '+msg)
-
-_append, _cons, _let = map(Sym, "append cons let".split())
-
-def expand_quasiquote(x):
-    """Expand `x => 'x; `,x => x; `(,@x y) => (append x y) """
-    if not is_pair(x):
-        return [_quote, x]
-    require(x, x[0] is not _unquotesplicing, "can't splice here")
-    if x[0] is _unquote:
-        require(x, len(x)==2)
-        return x[1]
-    elif is_pair(x[0]) and x[0][0] is _unquotesplicing:
-        require(x[0], len(x[0])==2)
-        return [_append, x[0][1], expand_quasiquote(x[1:])]
+    elif len(x) == 0:
+        return None
     else:
-        return [_cons, expand_quasiquote(x[0]), expand_quasiquote(x[1:])]
+        proc = eval(x[0])
+        if isinstance(proc, Macro):
+            args = x[1:]
+            return proc(*args)
+        else:
+            args = [eval(exp) for exp in x[1:]]
+            return proc(*args)
 
-def let(*args):
-    args = list(args)
-    x = cons(_let, args)
-    require(x, len(args)>1)
-    bindings, body = args[0], args[1:]
-    require(x, all(isa(b, list) and len(b)==2 and isa(b[0], Symbol)
-                   for b in bindings), "illegal binding list")
-    vars, vals = zip(*bindings)
-    return [[_lambda, list(vars)]+map(expand, body)] + map(expand, vals)
-
-macro_table = {_let:let} ## More macros can go here
-
-eval(parse("""(begin
-
-(define-macro and (lambda args 
-   (if (null? args) #t
-       (if (= (length args) 1) (car args)
-           `(if ,(car args) (and ,@(cdr args)) #f)))))
-
-;; More macros can also go here
-
-)"""))
+################ main
 
 if __name__ == '__main__':
-    repl()
+    tests = [
+        "(((fn (a) (fn (b) (+ a b))) 2) 40)",
 
+        "(def a (macro (x) (list? x)))",
+        "(a 5)",
+        "(a (+ 5 5))",
+        "(a '(+ 5 5))",
+
+        "(def b (fn (x) (list? x)))",
+        "(b 5)",
+        "(b (+ 5 5))",
+        "(b '(+ 5 5))",
+
+        "(def test (fn (x) (def miew x)))",
+        "(test 42)",
+        "'miew",
+
+        "(def test (macro (x) (def miew x)))",
+        "(test 42)",
+        "miew",
+
+        "(def miew (fn () (print \"miew!\")))",
+        "(miew)",
+
+        "(def mif (fn (cnd) (if cnd (macro (a b) a) (macro (a b) b))))",
+        "((mif #t) (print 1) (print 2))",
+        "((mif #f) (print 1) (print 2))",
+    ]
+    for test in tests:
+        print("> " + test)
+        res = eval(parse(test))
+        if res: print res
+    repl()
