@@ -34,6 +34,7 @@ import re
 import sys
 import StringIO
 import random
+import lark
 
 class Symbol(str): pass
 
@@ -75,6 +76,61 @@ class NativeMacro(Macro):
         return self.func(*args)
 
 ################ parse, read, and user interaction
+
+esl_grammar = r"""
+expr : list
+     | atom
+     | qexpr
+
+qexpr : QUOTE expr
+
+list : "(" [(expr)*] ")"
+
+atom : symbol
+     | string
+     | num
+     | true
+     | false
+
+symbol : SYMBOL
+string : ESCAPED_STRING
+num : SIGNED_NUMBER
+true : "#t"
+false : "#f"
+
+QUOTE : "'" | "`" | ",@" | ","
+
+SYMBOL : /[a-zA-Z][a-zA-z-?]*/
+       |"+"|"*"|"-"|"/"
+       |">"|"<"|">="|"<="|"="
+
+%import common.ESCAPED_STRING
+%import common.SIGNED_NUMBER
+%import common.WS
+%ignore WS
+"""
+
+class EslTransformer(lark.Transformer):
+    def expr(self, (arg,)):
+        return arg
+    def qexpr(self, (q,e)):
+        return [quotes[q], e]
+    def list(self, args):
+        return list(args)
+    def atom(self, (arg,)):
+        return arg
+    def symbol(self, (sym,)):
+        return Symbol(sym)
+    def num(self, (val,)):
+        return int(val)
+    def string(self, (val,)):
+        return str(val)[1:-1]
+    def true(self, _):
+        return True
+    def false(self, _):
+        return False
+
+esl_parser = lark.Lark(esl_grammar, start="expr")
 
 def parse(inport):
     "Parse a program: read and expand/error-check it."
