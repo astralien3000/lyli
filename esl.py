@@ -226,18 +226,21 @@ def macro_begin(*args):
 def macro_quote(arg):
     return arg
 
-def macro_quasiquote(x):
-    """Expand `x => 'x; `,x => x; `(,@x y) => (append x y) """
-    if not is_pair(x):
-        return x
-    if x[0] is _unquote:
-        return eval(x[1])
-    elif is_pair(x[0]) and x[0][0] is _unquotesplicing:
-        return eval(x[0][1]) + macro_quasiquote(x[1:])
-    elif len(x) == 1:
-        return [macro_quasiquote(x[0])]
+def macro_quasiquote(exp):
+    if not isinstance(exp, list):
+        return exp
     else:
-        return [macro_quasiquote(x[0]), macro_quasiquote(x[1:])]
+        ret = []
+        for e in exp:
+            if not isinstance(e, list):
+                ret.append(e)
+            elif e[0] == _unquote:
+                ret.append(eval(e[1]))
+            elif e[0] == _unquotesplicing:
+                ret += eval(e[1])
+            else:
+                ret.append(macro_quasiquote(e))
+        return ret
 
 def add_globals(self):
     "Add some standard procedures."
@@ -339,9 +342,17 @@ if __name__ == '__main__':
         "(def mif (fn (cnd) (if cnd (macro (a b) a) (macro (a b) b))))",
         "((mif #t) (print 1) (print 2))",
         "((mif #f) (print 1) (print 2))",
+
+        "(def n '(42 666))",
+        "(list 'n n)",
+        "`(n ,n)",
+        "`(n ,@n)",
     ]
     for test in tests:
         print("> " + test)
+        print parse(test)
+        #print esl_parser.parse(test)
+        print EslTransformer().transform(esl_parser.parse(test))
         res = eval(parse(test))
         if res: print res
     repl()
