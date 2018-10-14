@@ -130,69 +130,29 @@ class EslTransformer(lark.Transformer):
     def false(self, _):
         return False
 
-esl_parser = lark.Lark(esl_grammar, start="expr")
+esl_parser = lark.Lark(esl_grammar, start="expr", parser="lalr", transformer=EslTransformer())
+
+class EOFException(Exception): pass
 
 def parse(inport):
-    "Parse a program: read and expand/error-check it."
-    # Backwards compatibility: given a str, convert it to an InPort
-    if isinstance(inport, str): inport = InPort(StringIO.StringIO(inport))
-    return read(inport)
-
-eof_object = Symbol('#<eof-object>') # Note: uninterned; can't be read
-
-class InPort(object):
-    "An input port. Retains a line of chars."
-    tokenizer = r"""\s*(,@|[('`,)]|"(?:[\\].|[^\\"])*"|;.*|[^\s('"`,;)]*)(.*)"""
-    def __init__(self, file):
-        self.file = file; self.line = ''
-    def next_token(self):
-        "Return the next token, reading new text into line buffer if needed."
-        while True:
-            if self.line == '': self.line = self.file.readline()
-            if self.line == '': return eof_object
-            token, self.line = re.match(InPort.tokenizer, self.line).groups()
-            if token != '' and not token.startswith(';'):
-                return token
-
-def readchar(inport):
-    "Read the next character from an input port."
-    if inport.line != '':
-        ch, inport.line = inport.line[0], inport.line[1:]
-        return ch
-    else:
-        return inport.file.read(1) or eof_object
-
-def read(inport):
-    "Read a Scheme expression from an input port."
-    def read_ahead(token):
-        if '(' == token: 
-            L = []
-            while True:
-                token = inport.next_token()
-                if token == ')': return L
-                else: L.append(read_ahead(token))
-        elif ')' == token: raise SyntaxError('unexpected )')
-        elif token in quotes: return [quotes[token], read(inport)]
-        elif token is eof_object: raise SyntaxError('unexpected EOF in list')
-        else: return atom(token)
-    # body of read:
-    token1 = inport.next_token()
-    return eof_object if token1 is eof_object else read_ahead(token1)
+    if isinstance(inport, str):
+        return esl_parser.parse(inport)
+    elif isinstance(inport, file):
+        ret = None
+        input_str = ""
+        while not ret:
+            line = inport.readline()
+            if not line:
+                raise EOFException()
+            input_str += line
+            try:
+                ret = esl_parser.parse(input_str)
+                return ret
+            except lark.UnexpectedToken as u:
+                pass
+    return None
 
 quotes = {"'":_quote, "`":_quasiquote, ",":_unquote, ",@":_unquotesplicing}
-
-def atom(token):
-    'Numbers become numbers; #t and #f are booleans; "..." string; otherwise Symbol.'
-    if token == '#t': return True
-    elif token == '#f': return False
-    elif token[0] == '"': return token[1:-1].decode('string_escape')
-    try: return int(token)
-    except ValueError:
-        try: return float(token)
-        except ValueError:
-            try: return complex(token.replace('i', 'j', 1))
-            except ValueError:
-                return Symbol(token)
 
 def to_string(x):
     "Convert a Python object back into a Lisp-readable string."
@@ -206,18 +166,20 @@ def to_string(x):
 
 def load(filename):
     "Eval every expression from a file."
-    repl(None, InPort(open(filename)), None)
+    repl(None, open(filename), None)
 
-def repl(prompt='lispy> ', inport=InPort(sys.stdin), out=sys.stdout):
+def repl(prompt='lispy> ', inport=sys.stdin, out=sys.stdout):
     "A prompt-read-eval-print loop."
     sys.stderr.write("Lispy version 2.0\n")
     while True:
         try:
             if prompt: sys.stderr.write(prompt)
             x = parse(inport)
-            if x is eof_object: return
             val = eval(x)
             if val is not None and out: print >> out, to_string(val)
+        except EOFException as e:
+            print 'EOF'
+            return
         except Exception as e:
             print '%s: %s' % (type(e).__name__, e)
 
@@ -408,7 +370,7 @@ if __name__ == '__main__':
         print("> " + test)
         print parse(test)
         #print esl_parser.parse(test)
-        print EslTransformer().transform(esl_parser.parse(test))
+        print esl_parser.parse(test)
         res = eval(parse(test))
         if res: print res
     repl()
