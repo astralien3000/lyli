@@ -1,0 +1,62 @@
+start : (instr ";")* instr?
+
+instr : expr
+      | stmt
+
+stmt : expr (expr)+
+
+precedence_0_expr : atomic_expr
+                  | "(" expr ")"
+
+atomic_expr : string_expr
+            | integer_expr
+            | symbol_expr
+
+precedence_1_expr : precedence_0_expr
+
+precedence_2_expr : precedence_1_expr
+                 | suffix_expr
+                 | call_expr
+                 | dot_expr
+
+suffix_expr : precedence_2_expr ("++"|"--")
+
+call_expr : paren_call_expr
+          | brace_call_expr
+          | array_call_expr
+
+paren_call_expr : precedence_2_expr "(" (instr ",")* instr? ")"
+brace_call_expr : precedence_2_expr "{" (instr ";")* instr? "}"
+array_call_expr : precedence_2_expr "[" (instr ",")* instr? "]"
+
+dot_expr : precedence_2_expr (dot|arrow) atomic_expr
+
+dot : "."
+arrow : "->"
+
+precedence_6_expr : precedence_2_expr
+                  | add_sub_expr
+
+add_sub_expr : precedence_6_expr (add|sub) precedence_2_expr
+
+add : "+"
+sub : "-"
+
+precedence_16_expr : precedence_6_expr
+                   | assign_expr
+
+assign_expr : precedence_6_expr "=" expr 
+
+expr : precedence_16_expr
+
+string_expr : STRING
+integer_expr : CONSTANTI
+symbol_expr : IDENTIFIER
+
+STRING : /\"[^\"]*\"/
+IDENTIFIER : /[a-zA-z][a-zA-Z0-9]*/
+CONSTANTI : /\d+/
+CONSTANTF : /\d+\.\d*/
+
+WS : " "|"\n"|"\r"|"\t"
+%ignore WS

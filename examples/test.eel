@@ -2,5 +2,5 @@ println("lool");
 
 println(42);
 
-int i = 666;
+def int i = 666;
 println(i);
