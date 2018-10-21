@@ -46,6 +46,10 @@ class EelTransformer(lark.Transformer):
         return arg
     def precedence_6_expr(self, (arg,)):
         return arg
+    def precedence_10_expr(self, (arg,)):
+        return arg
+    def precedence_15_expr(self, (arg,)):
+        return arg
     def precedence_16_expr(self, (arg,)):
         return arg
 
@@ -81,6 +85,18 @@ class EelTransformer(lark.Transformer):
         return Symbol("+")
     def sub(self, _):
         return Symbol("-")
+
+    def eq_expr(self, (left, op, right)):
+        return PCall([op, left, right])
+    def eq(self, _):
+        return Symbol("==")
+    def neq(self, _):
+        return Symbol("!=")
+
+    def or_expr(self, (left, op, right)):
+        return PCall([op, left, right])
+    def or_(self, _):
+        return Symbol("||")
 
     def assign_expr(self, (left, right)):
         return PCall([Symbol("="), left, right])
@@ -174,8 +190,9 @@ def global_context(self):
     ret.update({
         "+" : op.add,
         "-" : op.sub,
-        "eq": op.eq,
-        "or": op.or_,
+        "==": op.eq,
+        "!=": op.ne,
+        "||": op.or_,
     })
     return ret
 

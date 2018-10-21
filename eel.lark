@@ -42,10 +42,25 @@ add_sub_expr : precedence_6_expr (add|sub) precedence_2_expr
 add : "+"
 sub : "-"
 
-precedence_16_expr : precedence_6_expr
+precedence_10_expr : precedence_6_expr
+                   | eq_expr
+
+eq_expr : precedence_10_expr (eq|neq) precedence_6_expr
+
+eq : "=="
+neq : "!="
+
+precedence_15_expr : precedence_10_expr
+                   | or_expr
+
+or_expr : precedence_15_expr or_ precedence_10_expr
+
+or_ : "||"
+
+precedence_16_expr : precedence_15_expr
                    | assign_expr
 
-assign_expr : precedence_6_expr "=" expr 
+assign_expr : precedence_15_expr "=" expr 
 
 expr : precedence_16_expr
 
