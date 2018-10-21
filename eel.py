@@ -44,6 +44,8 @@ class EelTransformer(lark.Transformer):
         return arg
     def precedence_2_expr(self, (arg,)):
         return arg
+    def precedence_3_expr(self, (arg,)):
+        return arg
     def precedence_6_expr(self, (arg,)):
         return arg
     def precedence_9_expr(self, (arg,)):
@@ -80,6 +82,13 @@ class EelTransformer(lark.Transformer):
         return BCall(*args)
     def stmt(self, *args):
         return BCall(*args)
+
+    def unary_expr(self, (op, right)):
+        return PCall([op, right])
+    def not_(self, _):
+        return Symbol("!")
+    def bwnot(self, _):
+        return Symbol("~")
 
     def add_sub_expr(self, (left, op, right)):
         return PCall([op, left, right])
@@ -203,6 +212,8 @@ def global_context(self):
     ret.update({
         "+" : op.add,
         "-" : op.sub,
+        "!" : op.not_,
+        "~" : op.inv,
         "<": op.lt,
         ">": op.gt,
         "<=": op.le,
@@ -224,7 +235,6 @@ def eval(x):
         proc = eval(x[0])
         if isinstance(x, BCall):
             args = x[1:]
-            print x
             return proc(*args)
         else:
             args = [eval(exp) for exp in x[1:]]

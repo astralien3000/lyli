@@ -1,6 +1,9 @@
-import { std.io };
+print("lool");
 
-fn int main(array(string) args) {
-  std.io.println("hello world !");
-  return(0);
-};
+print(42);
+
+int a = 666;
+print(a);
+
+int b = 334;
+print(a+b);

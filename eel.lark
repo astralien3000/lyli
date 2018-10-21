@@ -19,7 +19,10 @@ precedence_2_expr : precedence_1_expr
                  | call_expr
                  | dot_expr
 
-suffix_expr : precedence_2_expr ("++"|"--")
+suffix_expr : precedence_2_expr (pp|mm)
+
+pp : "++"
+mm : "--"
 
 call_expr : paren_call_expr
           | brace_call_expr
@@ -34,10 +37,20 @@ dot_expr : precedence_2_expr (dot|arrow) atomic_expr
 dot : "."
 arrow : "->"
 
-precedence_6_expr : precedence_2_expr
+precedence_3_expr : precedence_2_expr
+                  | unary_expr
+
+unary_expr : (add|sub|pp|mm|mul|bwand|not|bwnot) precedence_3_expr
+
+mul : "*"
+bwand : "&"
+not : "!"
+bwnot : "~"
+
+precedence_6_expr : precedence_3_expr
                   | add_sub_expr
 
-add_sub_expr : precedence_6_expr (add|sub) precedence_2_expr
+add_sub_expr : precedence_6_expr (add|sub) precedence_3_expr
 
 add : "+"
 sub : "-"
@@ -70,7 +83,7 @@ or_ : "||"
 precedence_16_expr : precedence_15_expr
                    | assign_expr
 
-assign_expr : precedence_15_expr "=" expr 
+assign_expr : precedence_15_expr "=" precedence_16_expr
 
 expr : precedence_16_expr
 
