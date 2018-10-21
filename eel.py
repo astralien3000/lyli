@@ -85,6 +85,13 @@ class EelTransformer(lark.Transformer):
     def assign_expr(self, (left, right)):
         return PCall([Symbol("="), left, right])
 
+    def dot_expr(self, (left, dot, right)):
+        return BCall([PCall([Symbol(dot), left]), right])
+    def dot(self, _):
+        return Symbol(".")
+    def arrow(self, _):
+        return Symbol("->")
+
 eel_parser = lark.Lark.open("eel.lark", parser="lalr", transformer=EelTransformer())
 
 class Context(dict):
@@ -97,7 +104,7 @@ class Context(dict):
         elif self.parent:
             return self.parent.search(key)
         else:
-            return None
+            raise Exception("NOT FOUND : " + str(key))
     def __getitem__(self, key):
         ctx = self.search(key)
         if ctx:
@@ -119,7 +126,7 @@ def global_context(self):
         if isinstance(args[-1], list) and args[-1][0] == "=":
             cur_ctx.update({args[-1][1] : args[-1][2]})
         else:
-            raise "ERROR"
+            raise Exception("WRONG DEFINE FORM")
     ret = Context({
         "print" : _print,
         "def" : _def,
@@ -147,9 +154,13 @@ def eval(x):
             args = [eval(exp) for exp in x[1:]]
             return proc(*args)
 
-with open("examples/test.eel", "r") as f:
-    ast = eel_parser.parse(f.read())
-    print ast
-    for e in ast:
-        res = eval(e)
-        if res: print res
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) == 2:
+        with open(sys.argv[1], "r") as f:
+            ast = eel_parser.parse(f.read())
+            print ast
+            for e in ast:
+                res = eval(e)
+                if res: print res
+    

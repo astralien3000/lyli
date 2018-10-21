@@ -1,6 +1,6 @@
 import { std.io };
 
-fn int main(array(string) args) = {
+fn int main(array(string) args) {
   std.io.println("hello world !");
   return(0);
 };
