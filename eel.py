@@ -3,7 +3,7 @@
 
 import lark
 
-class Symbol(object):
+class Symbol(str):
     def __init__(self, name):
         self.name = name
     def __str__(self):
@@ -87,6 +87,69 @@ class EelTransformer(lark.Transformer):
 
 eel_parser = lark.Lark.open("eel.lark", parser="lalr", transformer=EelTransformer())
 
+class Context(dict):
+    def __init__(self, pairs={}, parent=None):
+        dict.__init__(self, pairs)
+        self.parent = parent
+    def search(self, key):
+        if key in self:
+            return self
+        elif self.parent:
+            return self.parent.search(key)
+        else:
+            return None
+    def __getitem__(self, key):
+        ctx = self.search(key)
+        if ctx:
+            return dict.__getitem__(ctx, key)
+        else:
+            return None
+    def __setitem__(self, key, val):
+        ctx = self.search(key)
+        if ctx:
+            dict.__setitem__(ctx, key, val)
+
+cur_ctx = Context()
+
+def global_context(self):
+    global cur_ctx
+    def _print(args):
+        print(args)
+    def _def(*args):
+        if isinstance(args[-1], list) and args[-1][0] == "=":
+            cur_ctx.update({args[-1][1] : args[-1][2]})
+        else:
+            raise "ERROR"
+    ret = Context({
+        "print" : _print,
+        "def" : _def,
+    }, self)
+    import operator as op
+    ret.update({
+        "+" : op.add,
+        "-" : op.sub,
+    })
+    return ret
+
+cur_ctx = global_context(cur_ctx)
+
+def eval(x):
+    if isinstance(x, Symbol):
+        return cur_ctx[x]
+    elif not isinstance(x, list):
+        return x
+    else:
+        proc = eval(x[0])
+        if isinstance(x, BCall):
+            args = x[1:]
+            return proc(*args)
+        else:
+            args = [eval(exp) for exp in x[1:]]
+            return proc(*args)
+
 with open("examples/test.eel", "r") as f:
     ast = eel_parser.parse(f.read())
     print ast
+    for e in ast:
+        res = eval(e)
+        if res: print res

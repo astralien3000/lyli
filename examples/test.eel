@@ -1,6 +1,10 @@
-println("lool");
+print("lool");
 
-println(42);
+print(42);
 
-def int i = 666;
-println(i);
+def int a = 666;
+print(a);
+
+def int b = 334;
+
+print(a+b);
