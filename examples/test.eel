@@ -1,10 +1,21 @@
+1;
+
 print("lool");
 
 print(42);
 
-def int a = 666;
+int a = 666;
 print(a);
 
-def int b = 334;
+int b = 334;
 
 print(a+b);
+
+fn int fib(int n) {
+    if(or(eq(n, 1), eq(n, 2))) {
+        1;
+        fib(n-1) + fib(n-2);
+    };
+};
+
+print(fib(12));

@@ -118,6 +118,20 @@ class Context(dict):
 
 cur_ctx = Context()
 
+class Func(object):
+    def __init__(self, params, exp, ctx):
+        self.params = params
+        self.exp = exp
+        self.ctx = ctx
+    def __call__(self, *args):
+        global cur_ctx
+        prev_ctx = cur_ctx
+        cur_ctx =  Context(zip(self.params, args), self.ctx)
+        for e in self.exp:
+            ret = eval(e)
+        cur_ctx = prev_ctx
+        return ret
+
 def global_context(self):
     global cur_ctx
     def _print(args):
@@ -127,14 +141,32 @@ def global_context(self):
             cur_ctx.update({args[-1][1] : args[-1][2]})
         else:
             raise Exception("WRONG DEFINE FORM")
+        return None
+    def _fn(*args):
+        if isinstance(args[-1], list):
+            params = map(lambda x: x[1], args[-1][0][1:])
+            cur_ctx.update({
+                args[-1][0][0] : Func(params, args[-1][1:], cur_ctx)
+            })
+        else:
+            raise Exception("WRONG DEFINE FORM")
+    def _if(arg):
+        if arg:
+            return lambda a,b: eval(a)
+        else:
+            return lambda a,b: eval(b)
     ret = Context({
         "print" : _print,
-        "def" : _def,
+        "int" : _def,
+        "fn" : _fn,
+        "if" : _if,
     }, self)
     import operator as op
     ret.update({
         "+" : op.add,
         "-" : op.sub,
+        "eq": op.eq,
+        "or": op.or_,
     })
     return ret
 
