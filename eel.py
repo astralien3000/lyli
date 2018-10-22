@@ -4,10 +4,7 @@
 import lark
 
 class Symbol(str):
-    def __init__(self, name):
-        self.name = name
-    def __str__(self):
-        return self.name
+    pass
 
 class PCall(list):
     def __str__(self):
@@ -201,12 +198,18 @@ def global_context(self):
         return lambda a: None
     def _ret(arg):
         return Func.Return(eval(arg))
+    def _import(arg):
+        import importlib
+        mod = importlib.import_module(arg)
+        cur_ctx.update(vars(mod))
+        return None
     ret = Context({
         "print" : _print,
         "int" : _def,
         "fn" : _fn,
         "if" : _if,
         "return" : _ret,
+        "import" : _import,
     }, self)
     import operator as op
     ret.update({

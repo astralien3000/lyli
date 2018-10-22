@@ -1,0 +1,7 @@
+import{math};
+
+print(pi);
+
+import{string};
+
+print(upper("abc"));
