@@ -3,3 +3,5 @@
 *.y.*
 *.o
 parse
+*.pyc
+
