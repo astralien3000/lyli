@@ -78,7 +78,7 @@ class EelTransformer(lark.Transformer):
     def brace_call_expr(self, *args):
         return BCall(*args)
     def stmt(self, *args):
-        return BCall(*args)
+        return BCall([PCall([Symbol("_"), args[0][0]])] + args[0][1:])
 
     def unary_expr(self, (op, right)):
         return PCall([op, right])
@@ -203,7 +203,10 @@ def global_context(self):
         mod = importlib.import_module(arg)
         cur_ctx.update(vars(mod))
         return None
+    def _(arg):
+        return arg
     ret = Context({
+        "_" : _,
         "print" : _print,
         "int" : _def,
         "fn" : _fn,
