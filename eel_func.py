@@ -1,15 +1,77 @@
+#!/usr/bin/python
+
+from cgen import *
+from subprocess import call
+from ctypes import *
+
+def compile(exp):
+    import eel_instr as i
+    if isinstance(exp, i.BCall):
+        if isinstance(exp[0], i.PCall):
+            if exp[0][0] == "if":
+                return If(compile(exp[0][1]), Block(compile(exp[1:])))
+            if exp[0][0] == "_":
+                ret = str(exp[0][1])
+                for e in exp[1:]:
+                    ret += " " + str(compile(e))
+                return Statement(ret)
+        return Line(str(exp))
+    elif isinstance(exp, i.PCall):
+        if exp[0] == "==":
+            return Line(compile(exp[1]) + " == " + compile(exp[2]))
+        if exp[0] == "<":
+            return Line(compile(exp[1]) + " < " + compile(exp[2]))
+        if exp[0] == "+":
+            return Line(str(compile(exp[1])) + " + " + str(compile(exp[2])))
+        if exp[0] == "-":
+            return Line(str(compile(exp[1])) + " - " + str(compile(exp[2])))
+        ret = str(exp[0])
+        ret += "("
+        ret += str(compile(exp[1]))
+        for e in exp[2:]:
+            ret += ", " + str(compile(e))
+        ret += ")"
+        return Line(str(ret))
+    elif isinstance(exp, list):
+        ret = list()
+        for e in exp:
+            ret.append(compile(e))
+        return Block(ret)
+    return str(exp)
+
+def mkCFunc(sym, restype, params_types, params, exp):
+    params = map(lambda (t, s): Value(t,s), zip(params_types, params))
+    body = compile(exp)
+    test = FunctionBody(
+        FunctionDeclaration(Value(str(restype), sym), params),
+        body
+    )
+
+    print(test)
+    f = open("test.c", "w+")
+    f.write(str(test))
+    f.close()
+
+    call(["gcc", "-shared", "-fPIC", "test.c", "-o", "test.so"])
+
+    test_so = CDLL("./test.so")
+
+    return test_so[sym]
 
 class Func(object):
     class Return(object):
         def __init__(self, val):
             self.val = val
-    def __init__(self, params, exp, ctx):
+    def __init__(self, sym, restype, params_types, params, exp, ctx):
         self.params = params
         self.exp = exp
         self.ctx = ctx
+        self.cfunc = mkCFunc(sym, restype, params_types, params, exp)
     def __call__(self, *args):
-        from eel_eval import *
-        from eel_context import *
+        return self.cfunc(*args)
+    def prev_call(self, *args):
+        from eel_eval import eval
+        from eel_context import Context
         import eel_cur_ctx
         prev_ctx = eel_cur_ctx.cur_ctx
         eel_cur_ctx.cur_ctx =  Context(zip(self.params, args), self.ctx)

@@ -4,4 +4,4 @@
 *.o
 parse
 *.pyc
-
+*.so

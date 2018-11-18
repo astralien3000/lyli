@@ -24,8 +24,9 @@ def global_context(self):
     def _fn(*args):
         if isinstance(args[-1], list):
             params = map(lambda x: x[1], args[-1][0][1:])
+            params_types = map(lambda x: x[0][1], args[-1][0][1:])
             eel_cur_ctx.cur_ctx.update({
-                args[-1][0][0] : Func(params, args[-1][1:], eel_cur_ctx.cur_ctx)
+                args[-1][0][0] : Func(args[-1][0][0], args[-2], params_types, params, args[-1][1:], eel_cur_ctx.cur_ctx)
             })
         else:
             raise Exception("WRONG DEFINE FORM")
