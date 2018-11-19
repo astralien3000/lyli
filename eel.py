@@ -54,18 +54,18 @@ def global_context(self):
     }, self)
     import operator as op
     ret.update({
-        "+" : op.add,
-        "-" : op.sub,
-        "*" : op.mul,
-        "!" : op.not_,
-        "~" : op.inv,
-        "<": op.lt,
-        ">": op.gt,
-        "<=": op.le,
-        ">=": op.ge,
-        "==": op.eq,
-        "!=": op.ne,
-        "||": op.or_,
+        "+" : BOp("+", op.add),
+        "-" : BOp("-", op.sub),
+        "*" : BOp("*", op.mul),
+        "!" : BOp("!", op.not_),
+        "~" : BOp("~", op.inv),
+        "<" : BOp("<", op.lt),
+        ">" : BOp(">", op.gt),
+        "<=" : BOp("<=", op.le),
+        ">=" : BOp(">=", op.ge),
+        "==" : BOp("==", op.eq),
+        "!=" : BOp("!=", op.ne),
+        "||" : BOp("||", op.or_),
     })
     return ret
 
