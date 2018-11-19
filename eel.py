@@ -56,6 +56,7 @@ def global_context(self):
     ret.update({
         "+" : op.add,
         "-" : op.sub,
+        "*" : op.mul,
         "!" : op.not_,
         "~" : op.inv,
         "<": op.lt,

@@ -11,6 +11,8 @@ class EelTransformer(lark.Transformer):
         return arg
     def precedence_3_expr(self, (arg,)):
         return arg
+    def precedence_5_expr(self, (arg,)):
+        return arg
     def precedence_6_expr(self, (arg,)):
         return arg
     def precedence_9_expr(self, (arg,)):
@@ -41,6 +43,9 @@ class EelTransformer(lark.Transformer):
     def symbol_expr(self, (arg,)):
         return Symbol(arg)
 
+    def operator(self, (arg,)):
+        return arg
+
     def paren_call_expr(self, *args):
         return PCall(*args)
     def brace_call_expr(self, *args):
@@ -54,6 +59,16 @@ class EelTransformer(lark.Transformer):
         return Symbol("!")
     def bwnot(self, _):
         return Symbol("~")
+
+    def mul(self, _):
+        return Symbol("*")
+
+    def mul_expr(self, (left, op, right)):
+        return PCall([op, left, right])
+    def div(self, _):
+        return Symbol("/")
+    def mod(self, _):
+        return Symbol("%")
 
     def add_sub_expr(self, (left, op, right)):
         return PCall([op, left, right])

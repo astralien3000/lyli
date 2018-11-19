@@ -11,6 +11,7 @@ precedence_0_expr : atomic_expr
 atomic_expr : string_expr
             | integer_expr
             | symbol_expr
+            | operator
 
 precedence_1_expr : precedence_0_expr
 
@@ -28,6 +29,14 @@ call_expr : paren_call_expr
           | brace_call_expr
           | array_call_expr
 
+operator : pp | mm
+         | dot | arrow
+         | mul | bwand | not | bwnot
+         | div | mod
+         | add | sub
+         | lt | gt | le | ge
+         | eq | neq
+
 paren_call_expr : precedence_2_expr "(" (instr ",")* instr? ")"
 brace_call_expr : precedence_2_expr "{" (instr ";")* instr? "}"
 array_call_expr : precedence_2_expr "[" (instr ",")* instr? "]"
@@ -38,16 +47,21 @@ dot : "."
 arrow : "->"
 
 precedence_3_expr : precedence_2_expr
-                  | unary_expr
-
-unary_expr : (add|sub|pp|mm|mul|bwand|not|bwnot) precedence_3_expr
 
 mul : "*"
 bwand : "&"
 not : "!"
 bwnot : "~"
 
-precedence_6_expr : precedence_3_expr
+precedence_5_expr : precedence_3_expr
+                  | mul_expr
+
+div : "/"
+mod : "%"
+
+mul_expr : precedence_5_expr (mul|div|mod) precedence_3_expr
+
+precedence_6_expr : precedence_5_expr
                   | add_sub_expr
 
 add_sub_expr : precedence_6_expr (add|sub) precedence_3_expr

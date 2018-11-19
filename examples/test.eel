@@ -5,3 +5,5 @@ print(pi);
 import{string};
 
 print(upper("abc"));
+
+print(3*4)
