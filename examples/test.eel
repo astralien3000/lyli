@@ -1,9 +1,10 @@
-import{math};
 
-print(pi);
+fn int miew(int a) {
+    return a+42;
+};
 
-import{string};
+fn int lool(int a) {
+    return a+666;
+};
 
-print(upper("abc"));
-
-print(3*4)
+miew(lool(10));

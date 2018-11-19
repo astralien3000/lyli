@@ -4,6 +4,8 @@ from cgen import *
 from subprocess import call
 from ctypes import *
 
+import tempfile
+
 def compile(exp):
     import eel_instr as i
     if isinstance(exp, i.BCall):
@@ -39,6 +41,8 @@ def compile(exp):
         return Block(ret)
     return str(exp)
 
+d = tempfile.mkdtemp()
+
 def mkCFunc(sym, restype, params_types, params, exp):
     params = map(lambda (t, s): Value(t,s), zip(params_types, params))
     body = compile(exp)
@@ -48,13 +52,13 @@ def mkCFunc(sym, restype, params_types, params, exp):
     )
 
     print(test)
-    f = open("test.c", "w+")
+    f = open(d+"/"+str(sym)+".c", "w+")
     f.write(str(test))
     f.close()
 
-    call(["gcc", "-shared", "-fPIC", "test.c", "-o", "test.so"])
+    call(["gcc", "-shared", "-fPIC", d+"/"+str(sym)+".c", "-o", d+"/"+str(sym)+".so"])
 
-    test_so = CDLL("./test.so")
+    test_so = CDLL(d+"/"+str(sym)+".so")
 
     return test_so[sym]
 
