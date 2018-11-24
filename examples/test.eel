@@ -4,7 +4,7 @@ fn int miew(int a) {
 };
 
 fn int lool(int a) {
-    return a+666;
+    return miew(a);
 };
 
-miew(lool(10));
+lool(10);

@@ -27,6 +27,7 @@ def compile(exp):
         return str(exp)
     elif isinstance(exp, i.PCall):
         f = eval(exp[0])
+        f.build()
         ret = f.compile_call(exp[1:])
         return ret
     elif isinstance(exp, list):
@@ -37,6 +38,8 @@ def compile(exp):
     return str(exp)
 
 d = tempfile.mkdtemp()
+
+ld_flags = []
 
 def mkCFunc(sym, restype, params_types, params, exp):
     params = zip(params_types, params)
@@ -55,7 +58,11 @@ def mkCFunc(sym, restype, params_types, params, exp):
     f.write(str(test))
     f.close()
 
-    call(["gcc", "-shared", "-fPIC", d+"/"+str(sym)+".c", "-o", d+"/"+str(sym)+".so"])
+    cmd  = ["gcc", "-shared", "-fPIC", d+"/"+str(sym)+".c", "-o", d+"/"+str(sym)+".so"]
+    cmd += ld_flags
+    cmd += ["-Wno-implicit-function-declaration"]
+    call(cmd)
+    ld_flags.append(d+"/"+str(sym)+".so")
 
     test_so = CDLL(d+"/"+str(sym)+".so")
 
@@ -80,6 +87,9 @@ class Func(object):
             ret += str(compile(a))
         ret += ")"
         return ret
+    def build(self):
+        if not self.cfunc:
+            self.cfunc = mkCFunc(self.sym, self.restype, self.params_types, self.params, self.exp)
     def __call__(self, *args):
         if not self.cfunc:
             self.cfunc = mkCFunc(self.sym, self.restype, self.params_types, self.params, self.exp)
@@ -109,5 +119,7 @@ class BOp(object):
             ret += str(self.sym)
             ret += str(compile(a))
         return ret
+    def build(self):
+        pass
     def __call__(self, *args):
         return self.func(*args)
