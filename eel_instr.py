@@ -1,6 +1,9 @@
 
 class Symbol(str):
-    pass
+    def __new__(cls, name, type="void"):
+        ret = super(Symbol, cls).__new__(cls,name)
+        ret.type = type
+        return ret
 
 class PCall(list):
     def __str__(self):

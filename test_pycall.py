@@ -9,7 +9,7 @@ myprint(666)
 
 cmd  = ["gcc", "-shared", "-fPIC", "test_pycall.c", "-o", "test_pycall.so"]
 cmd += ["-I/usr/include/python2.7"]
-cmd += ["-DLOOL="+hex(id(myprint))]
+cmd += ["-Dprint=(*(PyObject*)"+hex(id(myprint))+")"]
 
 print(cmd)
 call(cmd)

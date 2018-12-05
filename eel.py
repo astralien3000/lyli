@@ -45,7 +45,7 @@ def global_context(self):
         return arg
     ret = Context({
         "_" : _,
-        "print" : _print,
+        "print" : PyFunc("print", _print),
         "int" : _def,
         "fn" : _fn,
         "if" : _if,

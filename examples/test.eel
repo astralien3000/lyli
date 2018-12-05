@@ -1,5 +1,7 @@
 
 fn int miew(int a) {
+    print(5);
+    print(a);
     return a+42;
 };
 

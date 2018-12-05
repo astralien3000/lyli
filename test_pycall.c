@@ -8,12 +8,12 @@ void test(void) {
 
     arglist = Py_BuildValue("(s)", "hello");
 
-    printf("%p, %p\n", (PyObject*)LOOL, arglist);
+    printf("%p, %p\n", &print, arglist);
 
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
     
-    result = PyEval_CallObject((PyObject*)LOOL, arglist);
+    result = PyEval_CallObject(&print, arglist);
     
     PyGILState_Release(gstate);
 
