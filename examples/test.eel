@@ -10,3 +10,4 @@ fn int lool(int a) {
 };
 
 lool(10);
+lool(42);

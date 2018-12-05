@@ -89,6 +89,7 @@ class Func(object):
         self.params_types = params_types
         tmp_ctx = eel_cur_ctx.cur_ctx
         eel_cur_ctx.cur_ctx = Context(map(lambda p: (p, None), self.params), ctx)
+        eel_cur_ctx.cur_ctx = Context([(sym, self)], eel_cur_ctx.cur_ctx)
         self.cfunc = mkCFunc(self.sym, self.restype, self.params, self.exp)
         eel_cur_ctx.cur_ctx = tmp_ctx
     def compile_call(self, *args):
@@ -143,7 +144,6 @@ class PyFunc(object):
                         args_vals.append(a)
                         if v.type == "int":
                             args_str += "i"
-
         args_str += ")"
         ret  = '{'
         ret += 'PyObject* arglist = 0;'
