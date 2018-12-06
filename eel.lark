@@ -3,24 +3,15 @@ start : (instr ";")* instr?
 instr : expr
       | stmt
 
-stmt : expr (expr)+
+expr : atomic_expr
+     | call_expr
 
-precedence_0_expr : atomic_expr
-                  | "(" expr ")"
+stmt : expr (expr)+
 
 atomic_expr : string_expr
             | integer_expr
             | symbol_expr
             | operator
-
-precedence_1_expr : precedence_0_expr
-
-precedence_2_expr : precedence_1_expr
-                 | suffix_expr
-                 | call_expr
-                 | dot_expr
-
-suffix_expr : precedence_2_expr (pp|mm)
 
 pp : "++"
 mm : "--"
@@ -28,6 +19,10 @@ mm : "--"
 call_expr : paren_call_expr
           | brace_call_expr
           | array_call_expr
+
+paren_call_expr : expr "(" (instr ",")* instr? ")"
+brace_call_expr : expr "{" (instr ";")* instr? "}"
+array_call_expr : expr "[" (instr ",")* instr? "]"
 
 operator : pp | mm
          | dot | arrow
@@ -37,69 +32,29 @@ operator : pp | mm
          | lt | gt | le | ge
          | eq | neq
 
-paren_call_expr : precedence_2_expr "(" (instr ",")* instr? ")"
-brace_call_expr : precedence_2_expr "{" (instr ";")* instr? "}"
-array_call_expr : precedence_2_expr "[" (instr ",")* instr? "]"
-
-dot_expr : precedence_2_expr (dot|arrow) atomic_expr
-
 dot : "."
 arrow : "->"
-
-precedence_3_expr : precedence_2_expr
 
 mul : "*"
 bwand : "&"
 not : "!"
 bwnot : "~"
 
-precedence_5_expr : precedence_3_expr
-                  | mul_expr
-
 div : "/"
 mod : "%"
 
-mul_expr : precedence_5_expr (mul|div|mod) precedence_3_expr
-
-precedence_6_expr : precedence_5_expr
-                  | add_sub_expr
-
-add_sub_expr : precedence_6_expr (add|sub) precedence_3_expr
-
 add : "+"
 sub : "-"
-
-precedence_9_expr : precedence_6_expr
-                   | cmp_expr
-
-cmp_expr : precedence_9_expr (lt|gt|le|ge) precedence_6_expr
 
 lt : "<"
 gt : ">"
 le : "<="
 ge : ">="
 
-precedence_10_expr : precedence_9_expr
-                   | eq_expr
-
-eq_expr : precedence_10_expr (eq|neq) precedence_9_expr
-
 eq : "=="
 neq : "!="
 
-precedence_15_expr : precedence_10_expr
-                   | or_expr
-
-or_expr : precedence_15_expr or_ precedence_10_expr
-
 or_ : "||"
-
-precedence_16_expr : precedence_15_expr
-                   | assign_expr
-
-assign_expr : precedence_15_expr "=" precedence_16_expr
-
-expr : precedence_16_expr
 
 string_expr : STRING
 integer_expr : CONSTANTI
