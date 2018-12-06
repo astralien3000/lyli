@@ -1,6 +1,6 @@
 import lark
 
-from eel_instr import *
+from instr import *
 
 class EelTransformer(lark.Transformer):
     def precedence_0_expr(self, (arg,)):

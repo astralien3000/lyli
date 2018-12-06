@@ -5,14 +5,14 @@ from ctypes import *
 
 import tempfile
 
-import eel_instr
-import eel_cur_ctx
-from eel_eval import eval
-from eel_context import Context
+import instr
+import cur_ctx
+from eval import eval
+from context import Context
 
 def compile(exp):
-    from eel_eval import eval
-    import eel_instr as i
+    from eval import eval
+    import instr as i
     if isinstance(exp, i.BCall):
         if isinstance(exp[0], i.PCall):
             if exp[0][0] == "if":
@@ -46,7 +46,7 @@ d = tempfile.mkdtemp()
 ld_flags = []
 
 def mkCFunc(sym, restype, params, exp):
-    import eel_cur_ctx
+    import cur_ctx
     test  = "#include <Python.h>\n"
     test += str(restype)
     test += " "
@@ -59,7 +59,7 @@ def mkCFunc(sym, restype, params, exp):
     test += compile(exp)
     test += "}"
 
-    print(eel_cur_ctx.cur_ctx)
+    print(cur_ctx.cur_ctx)
     print(test)
     f = open(d+"/"+str(sym)+".c", "w+")
     f.write(str(test))
@@ -81,17 +81,17 @@ class Func(object):
         def __init__(self, val):
             self.val = val
     def __init__(self, sym, restype, params_types, params, exp, ctx):
-        self.params = map(lambda pt: eel_instr.Symbol(pt[0], pt[1]), zip(params, params_types))
+        self.params = map(lambda pt: instr.Symbol(pt[0], pt[1]), zip(params, params_types))
         self.exp = exp
         self.ctx = ctx
         self.sym = sym
         self.restype = restype
         self.params_types = params_types
-        tmp_ctx = eel_cur_ctx.cur_ctx
-        eel_cur_ctx.cur_ctx = Context(map(lambda p: (p, None), self.params), ctx)
-        eel_cur_ctx.cur_ctx = Context([(sym, self)], eel_cur_ctx.cur_ctx)
+        tmp_ctx = cur_ctx.cur_ctx
+        cur_ctx.cur_ctx = Context(map(lambda p: (p, None), self.params), ctx)
+        cur_ctx.cur_ctx = Context([(sym, self)], cur_ctx.cur_ctx)
         self.cfunc = mkCFunc(self.sym, self.restype, self.params, self.exp)
-        eel_cur_ctx.cur_ctx = tmp_ctx
+        cur_ctx.cur_ctx = tmp_ctx
     def compile_call(self, *args):
         ret = str(self.sym)
         ret += "("
@@ -102,15 +102,15 @@ class Func(object):
     def __call__(self, *args):
         return self.cfunc(*args)
     def prev_call(self, *args):
-        prev_ctx = eel_cur_ctx.cur_ctx
-        eel_cur_ctx.cur_ctx =  Context(zip(self.params, args), self.ctx)
+        prev_ctx = cur_ctx.cur_ctx
+        cur_ctx.cur_ctx =  Context(zip(self.params, args), self.ctx)
         ret = None
         for e in self.exp:
             tmp = eval(e)
             if isinstance(tmp, Func.Return):
                 ret = tmp.val
                 break
-        eel_cur_ctx.cur_ctx = prev_ctx
+        cur_ctx.cur_ctx = prev_ctx
         return ret
 
 class BOp(object):
@@ -137,8 +137,8 @@ class PyFunc(object):
             if isinstance(a, int):
                 args_str += "i"
                 args_vals.append(str(a))
-            if isinstance(a, eel_instr.Symbol):
-                ctx = eel_cur_ctx.cur_ctx.search(a)
+            if isinstance(a, instr.Symbol):
+                ctx = cur_ctx.cur_ctx.search(a)
                 for v in ctx.keys():
                     if v == a:
                         args_vals.append(a)

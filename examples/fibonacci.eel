@@ -10,4 +10,4 @@ fn int fib(int n) {
     return fib(n-1) + fib(n-2);
 };
 
-print(fib(9));
+print(fib(5));

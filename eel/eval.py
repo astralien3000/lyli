@@ -1,10 +1,10 @@
-from eel_instr import *
-from eel_context import *
-import eel_cur_ctx
+from instr import *
+from context import *
+import cur_ctx
 
 def eval(x):
     if isinstance(x, Symbol):
-        return eel_cur_ctx.cur_ctx[x]
+        return cur_ctx.cur_ctx[x]
     elif not isinstance(x, list):
         return x
     else:
