@@ -4,6 +4,12 @@ class Symbol(str):
         ret = super(Symbol, cls).__new__(cls,name)
         ret.type = type
         return ret
+    def escape(c):
+        if ord(c) < 128:
+            return c
+        return "_u" + str(ord(c)) + "_"
+    def __str__(self):
+        return ''.join(list(map(Symbol.escape, super(Symbol, self).__str__())))
 
 class PCall(list):
     def __str__(self):

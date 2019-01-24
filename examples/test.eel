@@ -5,9 +5,9 @@ fn int miew(int a) {
     return a+42;
 };
 
-fn int lool(int a) {
+fn int loöl(int a) {
     return miew(a);
 };
 
-lool(10);
-lool(42);
+loöl(10);
+loöl(42);

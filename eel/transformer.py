@@ -20,6 +20,7 @@ class EelTransformer(lark.Transformer):
     def string_expr(self, args):
         return str(args[0])
     def symbol_expr(self, args):
+        print(args[0])
         return Symbol(args[0])
 
     def operator(self, args):

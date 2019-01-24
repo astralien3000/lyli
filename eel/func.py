@@ -74,7 +74,7 @@ def mkCFunc(sym, restype, params, exp):
 
     test_so = CDLL(d+"/"+str(sym)+".so")
 
-    return test_so[sym]
+    return test_so[str(sym)]
 
 class Func(object):
     class Return(object):
