@@ -21,40 +21,44 @@ paren_call_expr : expr "(" (instr ",")* instr? ")"
 brace_call_expr : expr "{" (instr ";")* instr? "}"
 array_call_expr : expr "[" (instr ",")* instr? "]"
 
-operator : pp | mm
-         | dot | arrow
-         | mul | bwand | not | bwnot
-         | div | mod
-         | add | sub
-         | lt | gt | le | ge
-         | eq | neq
+operator : PP | MM
+         | DOT | ARROW
+         | MUL | BWAND | NOT | BWNOT
+         | DIV | MOD
+         | ADD | SUB
+         | LT | GT | LE | GE
+         | EQ | NEQ
+         | OR_
+         | ASSIGN
 
-pp : "++"
-mm : "--"
+PP : "++"
+MM : "--"
 
-dot : "."
-arrow : "->"
+DOT : "."
+ARROW : "->"
 
-mul : "*"
-bwand : "&"
-not : "!"
-bwnot : "~"
+MUL : "*"
+BWAND : "&"
+NOT : "!"
+BWNOT : "~"
 
-div : "/"
-mod : "%"
+DIV : "/"
+MOD : "%"
 
-add : "+"
-sub : "-"
+ADD : "+"
+SUB : "-"
 
-lt : "<"
-gt : ">"
-le : "<="
-ge : ">="
+LT : "<"
+GT : ">"
+LE : "<="
+GE : ">="
 
-eq : "=="
-neq : "!="
+EQ : "=="
+NEQ : "!="
 
-or_ : "||"
+OR_ : "||"
+
+ASSIGN : "="
 
 string_expr : STRING
 integer_expr : CONSTANTI
@@ -62,8 +66,8 @@ symbol_expr : IDENTIFIER
 
 STRING : /\"[^\"\n]*\"/
 IDENTIFIER : /[^\W\d]\w*/
-CONSTANTI : /\d+/
-CONSTANTF : /\d+\.\d*/
+CONSTANTI : /\d+\w*/
+CONSTANTF : /\d+\.\d*\w*/
 
 WS : /\s/
 %ignore WS
