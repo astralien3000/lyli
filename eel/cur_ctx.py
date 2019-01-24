@@ -1,3 +1,3 @@
-from context import *
+from .context import *
 
 cur_ctx = Context()

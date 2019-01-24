@@ -1,6 +1,5 @@
 
 fn int fib(int n) {
-    print(n);
     if(n < 1) {
         return 0;
     };
@@ -10,4 +9,4 @@ fn int fib(int n) {
     return fib(n-1) + fib(n-2);
 };
 
-print(fib(5));
+print(fib(20));

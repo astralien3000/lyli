@@ -13,9 +13,6 @@ atomic_expr : string_expr
             | symbol_expr
             | operator
 
-pp : "++"
-mm : "--"
-
 call_expr : paren_call_expr
           | brace_call_expr
           | array_call_expr
@@ -31,6 +28,9 @@ operator : pp | mm
          | add | sub
          | lt | gt | le | ge
          | eq | neq
+
+pp : "++"
+mm : "--"
 
 dot : "."
 arrow : "->"
@@ -60,10 +60,10 @@ string_expr : STRING
 integer_expr : CONSTANTI
 symbol_expr : IDENTIFIER
 
-STRING : /\"[^\"]*\"/
-IDENTIFIER : /[a-zA-z][a-zA-Z0-9]*/
+STRING : /\"[^\"\n]*\"/
+IDENTIFIER : /[^\W\d]\w*/
 CONSTANTI : /\d+/
 CONSTANTF : /\d+\.\d*/
 
-WS : " "|"\n"|"\r"|"\t"
+WS : /\s/
 %ignore WS

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding: UTF-8
 
 import lark
@@ -10,7 +10,7 @@ from eel.func import *
 from eel.eval import *
 import eel.cur_ctx
 
-eel.parser = lark.Lark.open("eel.lark", parser="lalr", transformer=EelTransformer())
+eel.parser = lark.Lark(open("eel.lark", "r", encoding="utf-8"), parser="lalr", transformer=EelTransformer())
 
 def global_context(self):
     def _print(args):
@@ -23,8 +23,8 @@ def global_context(self):
         return None
     def _fn(*args):
         if isinstance(args[-1], list):
-            params = map(lambda x: x[1], args[-1][0][1:])
-            params_types = map(lambda x: x[0][1], args[-1][0][1:])
+            params = list(map(lambda x: x[1], args[-1][0][1:]))
+            params_types = list(map(lambda x: x[0][1], args[-1][0][1:]))
             eel.cur_ctx.cur_ctx.update({
                 args[-1][0][0] : Func(args[-1][0][0], args[-2], params_types, params, args[-1][1:], eel.cur_ctx.cur_ctx)
             })
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         with open(sys.argv[1], "r") as f:
             ast = eel.parser.parse(f.read())
-            print ast
+            print(ast)
             for e in ast:
                 res = eval(e)
-                if res: print res
+                if res: print(res)
     

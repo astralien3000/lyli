@@ -1,6 +1,6 @@
-from instr import *
-from context import *
-import cur_ctx
+from .instr import *
+from .context import *
+from . import cur_ctx
 
 def eval(x):
     if isinstance(x, Symbol):

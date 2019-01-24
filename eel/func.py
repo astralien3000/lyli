@@ -5,14 +5,14 @@ from ctypes import *
 
 import tempfile
 
-import instr
-import cur_ctx
-from eval import eval
-from context import Context
+from . import instr
+from . import cur_ctx
+from .eval import eval
+from .context import Context
 
 def compile(exp):
-    from eval import eval
-    import instr as i
+    from .eval import eval
+    from . import instr as i
     if isinstance(exp, i.BCall):
         if isinstance(exp[0], i.PCall):
             if exp[0][0] == "if":
@@ -46,7 +46,7 @@ d = tempfile.mkdtemp()
 ld_flags = []
 
 def mkCFunc(sym, restype, params, exp):
-    import cur_ctx
+    from . import cur_ctx
     test  = "#include <Python.h>\n"
     test += str(restype)
     test += " "
@@ -81,14 +81,14 @@ class Func(object):
         def __init__(self, val):
             self.val = val
     def __init__(self, sym, restype, params_types, params, exp, ctx):
-        self.params = map(lambda pt: instr.Symbol(pt[0], pt[1]), zip(params, params_types))
+        self.params = list(map(lambda pt: instr.Symbol(pt[0], pt[1]), zip(params, params_types)))
         self.exp = exp
         self.ctx = ctx
         self.sym = sym
         self.restype = restype
         self.params_types = params_types
         tmp_ctx = cur_ctx.cur_ctx
-        cur_ctx.cur_ctx = Context(map(lambda p: (p, None), self.params), ctx)
+        cur_ctx.cur_ctx = Context(list(map(lambda p: (p, None), self.params)), ctx)
         cur_ctx.cur_ctx = Context([(sym, self)], cur_ctx.cur_ctx)
         self.cfunc = mkCFunc(self.sym, self.restype, self.params, self.exp)
         cur_ctx.cur_ctx = tmp_ctx
@@ -146,14 +146,15 @@ class PyFunc(object):
                             args_str += "i"
         args_str += ")"
         ret  = '{'
+        ret += 'PyGILState_STATE gstate;'
+        ret += 'gstate = PyGILState_Ensure();'
         ret += 'PyObject* arglist = 0;'
         ret += 'PyObject* result = 0;'
         ret += 'arglist = Py_BuildValue("'+args_str+'", '+','.join(args_vals)+');'
-        ret += 'PyGILState_STATE gstate;'
-        ret += 'gstate = PyGILState_Ensure();'
         ret += 'result = PyEval_CallObject(((PyObject*)'+hex(id(self.func))+'), arglist);'
-        ret += 'PyGILState_Release(gstate);'
         ret += 'Py_DECREF(arglist);'
+        ret += 'Py_DECREF(result);'
+        ret += 'PyGILState_Release(gstate);'
         ret += '}'
         return ret
     def __call__(self, *args):
