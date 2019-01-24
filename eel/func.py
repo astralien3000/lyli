@@ -66,7 +66,7 @@ def mkCFunc(sym, restype, params, exp):
     f.close()
 
     cmd  = ["gcc", "-shared", "-fPIC", d+"/"+str(sym)+".c", "-o", d+"/"+str(sym)+".so"]
-    cmd += ["-I/usr/include/python2.7"]
+    cmd += ["-I/usr/include/python3.5"]
     cmd += ld_flags
     cmd += ["-Wno-implicit-function-declaration"]
     call(cmd)

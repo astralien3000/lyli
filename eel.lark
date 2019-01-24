@@ -28,7 +28,7 @@ operator : PP | MM
          | ADD | SUB
          | LT | GT | LE | GE
          | EQ | NEQ
-         | OR_
+         | OR
          | ASSIGN
 
 PP : "++"
@@ -56,7 +56,7 @@ GE : ">="
 EQ : "=="
 NEQ : "!="
 
-OR_ : "||"
+OR : "||"
 
 ASSIGN : "="
 
