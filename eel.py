@@ -15,9 +15,11 @@ eel.parser = lark.Lark(open("eel.lark", "r", encoding="utf-8"), parser="lalr", t
 def global_context(self):
     def _print(args):
         print(args)
-    def _def(*args):
-        if isinstance(args[-1], list) and args[-1][0] == "=":
-            eel.cur_ctx.cur_ctx.update({args[-1][1] : args[-1][2]})
+    def _defint(*args):
+        if len(args) == 3 and args[1] == "=":
+            eel.cur_ctx.cur_ctx.update({args[0] : args[2]})
+        elif len(args) == 1:
+            eel.cur_ctx.cur_ctx.update({args[0] : 0})
         else:
             raise Exception("WRONG DEFINE FORM")
         return None
@@ -43,14 +45,43 @@ def global_context(self):
         return None
     def _(arg):
         return arg
+    def _defstruct(*args):
+        import ctypes
+        name = args[0][0]
+        members = args[0][1:]
+        fields = []
+        for m in members:
+            if(m[0][1] == "int"):
+                fields.append((m[1], ctypes.c_int))
+        class DefStruct(ctypes.Structure):
+            _fields_ = fields
+        def _def(*args):
+            if len(args) == 1:
+                eel.cur_ctx.cur_ctx.update({args[0] : DefStruct()})
+            else:
+                raise Exception("WRONG DEFINE FORM")
+            return None
+        eel.cur_ctx.cur_ctx.update({
+            name : _def
+        })
+        def _get(memb):
+            return lambda *args: getattr(args[0], memb)
+        def _set(memb):
+            return lambda *args: setattr(args[0], memb, args[1])
+        for m in members:
+            eel.cur_ctx.cur_ctx.update({
+                "get_" + m[1] : _get(m[1]),
+                "set_" + m[1] : _set(m[1]),
+            })
     ret = Context({
         "_" : _,
         "print" : PyFunc("print", _print),
-        "int" : _def,
+        "int" : _defint,
         "fn" : _fn,
         "if" : _if,
         "return" : _ret,
         "import" : _import,
+        "struct" : _defstruct,
     }, self)
     import operator as op
     ret.update({

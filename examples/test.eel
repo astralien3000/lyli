@@ -11,3 +11,18 @@ fn int loöl(int a) {
 
 loöl(10);
 loöl(42);
+
+struct Test {
+    int a;
+    int b;
+    int c;
+};
+
+Test test;
+
+set_a(test, 666);
+set_b(test, +(get_a(test), 1));
+
+print(get_a(test));
+print(get_b(test));
+print(get_c(test));
