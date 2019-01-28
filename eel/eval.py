@@ -1,10 +1,10 @@
 from .instr import *
 from .context import *
-from . import cur_ctx
+from . import context
 
 def eval(x):
     if isinstance(x, Symbol):
-        return cur_ctx.cur_ctx[x]
+        return context.cur_ctx[x]
     elif not isinstance(x, list):
         return x
     else:

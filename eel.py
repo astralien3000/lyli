@@ -8,7 +8,7 @@ from eel.transformer import *
 from eel.context import *
 from eel.func import *
 from eel.eval import *
-import eel.cur_ctx
+import eel
 
 eel.parser = lark.Lark(open("eel.lark", "r", encoding="utf-8"), parser="lalr", transformer=EelTransformer())
 
@@ -17,9 +17,9 @@ def global_context(self):
         print(args)
     def _defint(*args):
         if len(args) == 3 and args[1] == "=":
-            eel.cur_ctx.cur_ctx.update({args[0] : args[2]})
+            eel.context.cur_ctx.update({args[0] : args[2]})
         elif len(args) == 1:
-            eel.cur_ctx.cur_ctx.update({args[0] : 0})
+            eel.context.cur_ctx.update({args[0] : 0})
         else:
             raise Exception("WRONG DEFINE FORM")
         return None
@@ -27,8 +27,8 @@ def global_context(self):
         if isinstance(args[-1], list):
             params = list(map(lambda x: x[1], args[-1][0][1:]))
             params_types = list(map(lambda x: x[0][1], args[-1][0][1:]))
-            eel.cur_ctx.cur_ctx.update({
-                args[-1][0][0] : Func(args[-1][0][0], args[-2], params_types, params, args[-1][1:], eel.cur_ctx.cur_ctx)
+            eel.context.cur_ctx.update({
+                args[-1][0][0] : Func(args[-1][0][0], args[-2], params_types, params, args[-1][1:], eel.context.cur_ctx)
             })
         else:
             raise Exception("WRONG DEFINE FORM")
@@ -41,7 +41,7 @@ def global_context(self):
     def _import(arg):
         import importlib
         mod = importlib.import_module(arg)
-        eel.cur_ctx.cur_ctx.update(vars(mod))
+        eel.context.cur_ctx.update(vars(mod))
         return None
     def _(arg):
         return arg
@@ -57,11 +57,11 @@ def global_context(self):
             _fields_ = fields
         def _def(*args):
             if len(args) == 1:
-                eel.cur_ctx.cur_ctx.update({args[0] : DefStruct()})
+                eel.context.cur_ctx.update({args[0] : DefStruct()})
             else:
                 raise Exception("WRONG DEFINE FORM")
             return None
-        eel.cur_ctx.cur_ctx.update({
+        eel.context.cur_ctx.update({
             name : _def
         })
         def _get(memb):
@@ -69,7 +69,7 @@ def global_context(self):
         def _set(memb):
             return lambda *args: setattr(args[0], memb, args[1])
         for m in members:
-            eel.cur_ctx.cur_ctx.update({
+            eel.context.cur_ctx.update({
                 "get_" + m[1] : _get(m[1]),
                 "set_" + m[1] : _set(m[1]),
             })
@@ -100,7 +100,7 @@ def global_context(self):
     })
     return ret
 
-eel.cur_ctx.cur_ctx = global_context(eel.cur_ctx.cur_ctx)
+eel.context.cur_ctx = global_context(eel.context.cur_ctx)
 
 if __name__ == "__main__":
     import sys

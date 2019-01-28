@@ -20,3 +20,5 @@ class Context(dict):
         ctx = self.search(key)
         if ctx:
             dict.__setitem__(ctx, key, val)
+
+cur_ctx = Context()

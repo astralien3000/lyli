@@ -6,7 +6,7 @@ from ctypes import *
 import tempfile
 
 from . import instr
-from . import cur_ctx
+from . import context
 from .eval import eval
 from .context import Context
 
@@ -46,7 +46,6 @@ d = tempfile.mkdtemp()
 ld_flags = []
 
 def mkCFunc(sym, restype, params, exp):
-    from . import cur_ctx
     test  = "#include <Python.h>\n"
     test += str(restype)
     test += " "
@@ -59,7 +58,7 @@ def mkCFunc(sym, restype, params, exp):
     test += compile(exp)
     test += "}"
 
-    print(cur_ctx.cur_ctx)
+    print(context.cur_ctx)
     print(test)
     f = open(d+"/"+str(sym)+".c", "w+")
     f.write(str(test))
@@ -87,11 +86,11 @@ class Func(object):
         self.sym = sym
         self.restype = restype
         self.params_types = params_types
-        tmp_ctx = cur_ctx.cur_ctx
-        cur_ctx.cur_ctx = Context(list(map(lambda p: (p, None), self.params)), ctx)
-        cur_ctx.cur_ctx = Context([(sym, self)], cur_ctx.cur_ctx)
+        tmp_ctx = context.cur_ctx
+        context.cur_ctx = Context(list(map(lambda p: (p, None), self.params)), ctx)
+        context.cur_ctx = Context([(sym, self)], context.cur_ctx)
         self.cfunc = mkCFunc(self.sym, self.restype, self.params, self.exp)
-        cur_ctx.cur_ctx = tmp_ctx
+        context.cur_ctx = tmp_ctx
     def compile_call(self, *args):
         ret = str(self.sym)
         ret += "("
@@ -102,15 +101,15 @@ class Func(object):
     def __call__(self, *args):
         return self.cfunc(*args)
     def prev_call(self, *args):
-        prev_ctx = cur_ctx.cur_ctx
-        cur_ctx.cur_ctx =  Context(zip(self.params, args), self.ctx)
+        prev_ctx = context.cur_ctx
+        context.cur_ctx =  Context(zip(self.params, args), self.ctx)
         ret = None
         for e in self.exp:
             tmp = eval(e)
             if isinstance(tmp, Func.Return):
                 ret = tmp.val
                 break
-        cur_ctx.cur_ctx = prev_ctx
+        context.cur_ctx = prev_ctx
         return ret
 
 class BOp(object):
@@ -138,7 +137,7 @@ class PyFunc(object):
                 args_str += "i"
                 args_vals.append(str(a))
             if isinstance(a, instr.Symbol):
-                ctx = cur_ctx.cur_ctx.search(a)
+                ctx = context.cur_ctx.search(a)
                 for v in ctx.keys():
                     if v == a:
                         args_vals.append(a)
