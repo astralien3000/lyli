@@ -16,18 +16,18 @@ def global_context(self):
     def _print(args):
         print(args)
     def _defint(*args):
-        if isinstance(args[0], list) and args[0][0] == '=':
-            eel.context.cur_ctx.update({args[0][1] : args[0][2]})
+        if isinstance(args[0], list) and str(args[0][0]) == '=':
+            eel.context.cur_ctx.update({str(args[0][1]) : args[0][2]})
         elif len(args) == 1:
-            eel.context.cur_ctx.update({args[0] : 0})
+            eel.context.cur_ctx.update({str(args[0]) : 0})
         else:
             raise Exception("WRONG DEFINE FORM")
         return None
     def _defvar(*args):
         if isinstance(args[0], list) and args[0][0] == '=':
-            eel.context.cur_ctx.update({args[0][1] : args[0][2]})
+            eel.context.cur_ctx.update({str(args[0][1]) : args[0][2]})
         elif len(args) == 1:
-            eel.context.cur_ctx.update({args[0] : 0})
+            eel.context.cur_ctx.update({str(args[0]) : 0})
         else:
             raise Exception("WRONG DEFINE FORM")
         return None
@@ -36,7 +36,7 @@ def global_context(self):
             params = list(map(lambda x: x[2], args[-1][0][1:]))
             params_types = list(map(lambda x: x[1], args[-1][0][1:]))
             eel.context.cur_ctx.update({
-                args[-1][0][0] : Func(args[-1][0][0], args[-2], params_types, params, args[-1][1:], eel.context.cur_ctx)
+                str(args[-1][0][0]) : Func(args[-1][0][0], args[-2], params_types, params, args[-1][1:], eel.context.cur_ctx)
             })
         else:
             raise Exception("WRONG DEFINE FORM")
@@ -49,7 +49,7 @@ def global_context(self):
             #print("params : " + str(params))
             #print("exp : " + str(exp))
             eel.context.cur_ctx.update({
-                sym : Macro(sym, params, exp)
+                str(sym) : Macro(sym, params, exp)
             })
         else:
             raise Exception("WRONG DEFINE FORM")
@@ -64,7 +64,7 @@ def global_context(self):
             return Func.Return(eval(BCall([Symbol("_"), *args])))
     def _import(arg):
         import importlib
-        mod = importlib.import_module(arg)
+        mod = importlib.import_module(str(arg))
         eel.context.cur_ctx.update(vars(mod))
         return None
     def _(*args):
@@ -81,7 +81,7 @@ def global_context(self):
               after = opexpr[i+2:]
             if i - 1 > 0:
               before = opexpr[:i-1]
-            if opexpr[i] == op:
+            if str(opexpr[i]) == op:
               opexpr = before + [Call([opexpr[i], opexpr[i-1], opexpr[i+1]])] + after
               found = True
               #print(opexpr)
@@ -91,12 +91,12 @@ def global_context(self):
       return eval(opexpr[0])
     def _defstruct(*args):
         import ctypes
-        name = args[0][0]
+        name = str(args[0][0])
         members = args[0][1:]
         fields = []
         for m in members:
-            if(m[1] == "int"):
-                fields.append((m[2], ctypes.c_int))
+            if(str(m[1]) == "int"):
+                fields.append((str(m[2]), ctypes.c_int))
         
         eel.context.cur_ctx.update({
             "LOL::" + name : Context()
@@ -106,13 +106,13 @@ def global_context(self):
         def _def(*args):
             if len(args) == 1:
                 eel.context.cur_ctx.update({
-                    args[0] : DefStruct(),
-                    Symbol(args[0] + "::type") : Symbol(name),
+                    str(args[0]) : DefStruct(),
+                    str(args[0]) + "::type" : Symbol(name),
                 })
                 eel.context.cur_ctx.update({
-                    "LOL::" + args[0] : Context()
+                    "LOL::" + str(args[0]) : Context()
                 })
-                eel.context.cur_ctx["LOL::" + args[0]].update({
+                eel.context.cur_ctx["LOL::" + str(args[0])].update({
                     "value" : DefStruct(),
                     "type" : Symbol(name),
                 })
@@ -132,20 +132,20 @@ def global_context(self):
             return lambda *args: setattr(args[0], memb, args[1])
         for m in members:
             eel.context.cur_ctx.update({
-                name + "::get_" + m[2] : _get(m[2]),
-                name + "::set_" + m[2] : _set(m[2]),
+                name + "::get_" + str(m[2]) : _get(str(m[2])),
+                name + "::set_" + str(m[2]) : _set(str(m[2])),
             })
             eel.context.cur_ctx["LOL::" + name].update({
-                "get_" + m[2] : _get(m[2]),
-                "set_" + m[2] : _set(m[2]),
+                "get_" + str(m[2]) : _get(str(m[2])),
+                "set_" + str(m[2]) : _set(str(m[2])),
             })
         #print(eel.context.cur_ctx)
     def _scope(arg1, arg2):
       if isinstance(arg2, Call):
         return Call([eel.context.cur_ctx["LOL::"+arg1][arg2[0]]] + arg2[1:])
-      return eval(eel.context.cur_ctx["LOL::"+arg1][arg2])
+      return eval(eel.context.cur_ctx["LOL::"+ str(arg1)][str(arg2)])
     def _dot(arg1, arg2):
-      arg1_type = eel.context.cur_ctx["LOL::"+arg1]["type"]
+      arg1_type = eel.context.cur_ctx["LOL::"+ str(arg1)]["type"]
       if isinstance(arg2, Call):
         return eval(Call([_scope(arg1_type, arg2[0]), arg1] + arg2[1:]))
       return eval(Call([_scope(arg1_type, arg2), arg1]))
@@ -157,7 +157,7 @@ def global_context(self):
       eel.context.cur_ctx = prev_ctx
       return None
     def _set(arg1, arg2):
-      eel.context.cur_ctx[arg1] = eval(arg2)
+      eel.context.cur_ctx[str(arg1)] = eval(arg2)
     ret = Context({
         "_" : PyMacro(_),
         "print" : PyFunc("print", _print),

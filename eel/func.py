@@ -82,14 +82,14 @@ class Func(object):
         def __init__(self, val):
             self.val = val
     def __init__(self, sym, restype, params_types, params, exp, ctx):
-        self.params = list(map(lambda pt: instr.Symbol(pt[0], pt[1]), zip(params, params_types)))
+        self.params = params
         self.exp = exp
         self.ctx = ctx
         self.sym = sym
         self.restype = restype
         self.params_types = params_types
         tmp_ctx = context.cur_ctx
-        context.cur_ctx = Context(list(map(lambda p: (p, None), self.params)), ctx)
+        context.cur_ctx = Context(list(map(lambda p: (str(p), None), self.params)), ctx)
         context.cur_ctx = Context([(sym, self)], context.cur_ctx)
         #self.cfunc = mkCFunc(self.sym, self.restype, self.params, self.exp)
         context.cur_ctx = tmp_ctx
@@ -102,7 +102,7 @@ class Func(object):
         return ret
     def prev_call(self, *args):
         prev_ctx = context.cur_ctx
-        context.cur_ctx =  Context(zip(self.params, args), self.ctx)
+        context.cur_ctx =  Context(zip(map(lambda x: str(x), self.params), args), self.ctx)
         ret = None
         for e in self.exp:
             tmp = eval(e)
@@ -168,7 +168,7 @@ class Macro(object):
         self.exp = exp
         self.sym = sym
     def __call__(self, *args):
-        context.cur_ctx.update(zip(self.params, args))
+        context.cur_ctx.update(zip(map(lambda x: str(x), self.params), args))
         for e in self.exp:
             tmp = eval(e)
         return None

@@ -9,8 +9,8 @@ fn int loöl(int a) {
     return miew(a);
 };
 
-loöl(10);
-loöl(42);
+print(loöl(10));
+print(loöl(42));
 
 struct Test {
     int a;

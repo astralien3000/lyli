@@ -13,3 +13,7 @@ print(a);
 
 int b = 334;
 print(b);
+
+print b;
+
+print "Hello World !";

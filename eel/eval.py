@@ -5,7 +5,7 @@ from . import func
 
 def eval(x):
     if isinstance(x, Symbol):
-        return context.cur_ctx[x]
+        return context.cur_ctx[str(x)]
     elif not isinstance(x, list):
         return x
     else:
