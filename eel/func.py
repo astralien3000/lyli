@@ -7,14 +7,14 @@ import sysconfig
 
 import tempfile
 
-from . import instr
+from . import ast
 from . import context
 from .eval import eval
 from .context import Context
 
 def compile(exp):
     from .eval import eval
-    from . import instr as i
+    from . import ast as i
     if isinstance(exp, i.BCall):
         if isinstance(exp[0], i.PCall):
             if exp[0][0] == "if":
@@ -139,7 +139,7 @@ class PyFunc(object):
             if isinstance(a, int):
                 args_str += "i"
                 args_vals.append(str(a))
-            if isinstance(a, instr.Symbol):
+            if isinstance(a, ast.Symbol):
                 ctx = context.cur_ctx.search(a)
                 for v in ctx.keys():
                     if v == a:

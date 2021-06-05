@@ -1,4 +1,4 @@
-from .instr import Symbol,Atomic,Call
+from .ast import Symbol,Atomic,Call
 from . import context
 from . import func
 

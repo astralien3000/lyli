@@ -1,6 +1,6 @@
 import lark
 
-from .instr import *
+from .ast import *
 
 class EelTransformer(lark.Transformer):
     def instr(self, args):

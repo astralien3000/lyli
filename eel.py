@@ -3,7 +3,7 @@
 
 import lark
 
-from eel.instr import *
+from eel.ast import *
 from eel.transformer import *
 from eel.context import *
 from eel.func import *
