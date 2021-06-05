@@ -1,6 +1,6 @@
-import expr_tree
-import context
-import func
+import lyli.expr_tree as expr_tree
+import lyli.context as context
+import lyli.func as func
 
 def eval_one(x):
   if isinstance(x, expr_tree.Symbol):

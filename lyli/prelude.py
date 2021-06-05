@@ -1,7 +1,7 @@
-import context
-import expr_tree
-import func
-import eval
+import lyli.context as context
+import lyli.expr_tree as expr_tree
+import lyli.func as func
+import lyli.eval as eval
 
 import operator
 

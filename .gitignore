@@ -5,3 +5,6 @@
 parse
 *.pyc
 *.so
+build
+dist
+*.egg-info

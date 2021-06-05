@@ -1,6 +1,6 @@
 import lark
 
-import expr_tree
+import lyli.expr_tree as expr_tree
 
 class Transformer(lark.Transformer):
     def instr(self, args):

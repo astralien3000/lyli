@@ -1,6 +1,6 @@
-import expr_tree
-import context
-import eval
+import lyli.expr_tree as expr_tree
+import lyli.context as context
+import lyli.eval as eval
 
 class Func:
     class Return(object):
