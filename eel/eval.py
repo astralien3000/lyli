@@ -1,21 +1,22 @@
-from .ast import Symbol,Atomic,Call
+from . import ast
 from . import context
 from . import func
 
 def eval_one(x):
-  if isinstance(x, Symbol):
+  if isinstance(x, ast.Symbol):
     return context.cur_ctx[str(x)]
-  elif isinstance(x, Atomic):
+  elif isinstance(x, ast.Atomic):
     return x.val
-  elif isinstance(x, Call):
+  elif isinstance(x, ast.Call):
     f = eval_one(x[0])
     if isinstance(f, func.Func):
       args = x[1:]
       return f(*args)
     else:
-      raise TypeError("ERROR : not a Proc " + str(x[0]))
+      raise TypeError("not a Func : " + str(x[0]))
+  elif isinstance(x, ast.Expr):
+    raise TypeError("not (yet) supported : " + str(type(x)) + " (" + str(x) + ")")
   else:
-    #print("WARNING (should not happen ?) : " + str(x))
     return x
 
 def eval_all(*args):
