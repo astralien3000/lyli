@@ -1,5 +1,4 @@
-from .instr import *
-from .context import *
+from .instr import Symbol,Atomic,Call
 from . import context
 from . import func
 

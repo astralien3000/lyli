@@ -27,12 +27,16 @@ class Integer(Atomic):
   def __str__(self):
     return str(self.val)
 
-class Call(list):
-    def __str__(self):
-        ret = "("
-        ret += str(self[0])
-        for a in self[1:]:
-            ret += " "
-            ret += str(a)
-        ret += ")"
-        return ret
+class Call(Expr):
+  def __init__(self, items):
+    self.items = items
+  def __getitem__(self, i):
+    return self.items[i]
+  def __str__(self):
+    ret = "("
+    ret += str(self.items[0])
+    for a in self.items[1:]:
+      ret += " "
+      ret += str(a)
+    ret += ")"
+    return ret

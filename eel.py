@@ -16,7 +16,7 @@ def global_context(self):
     def _print(args):
         print(args)
     def _defint(*args):
-        if isinstance(args[0], list) and str(args[0][0]) == '=':
+        if isinstance(args[0], Call) and str(args[0][0]) == '=':
             eel.context.cur_ctx.update({str(args[0][1]) : args[0][2]})
         elif len(args) == 1:
             eel.context.cur_ctx.update({str(args[0]) : 0})
@@ -24,7 +24,7 @@ def global_context(self):
             raise Exception("WRONG DEFINE FORM")
         return None
     def _defvar(*args):
-        if isinstance(args[0], list) and args[0][0] == '=':
+        if isinstance(args[0], Call) and args[0][0] == '=':
             eel.context.cur_ctx.update({str(args[0][1]) : args[0][2]})
         elif len(args) == 1:
             eel.context.cur_ctx.update({str(args[0]) : 0})
@@ -32,7 +32,7 @@ def global_context(self):
             raise Exception("WRONG DEFINE FORM")
         return None
     def _fn(*args):
-        if isinstance(args[-1], list):
+        if isinstance(args[-1], Call):
             params = list(map(lambda x: x[2], args[-1][0][1:]))
             params_types = list(map(lambda x: x[1], args[-1][0][1:]))
             eel.context.cur_ctx.update({
@@ -41,7 +41,7 @@ def global_context(self):
         else:
             raise Exception("WRONG DEFINE FORM")
     def _macro(*args):
-        if isinstance(args[0], list):
+        if isinstance(args[0], Call):
             sym = args[0][0][0]
             params = args[0][0][1:]
             exp = args[0][1:]
