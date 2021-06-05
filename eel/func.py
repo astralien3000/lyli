@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from . import ast
 from . import context
 from .eval import eval_one
