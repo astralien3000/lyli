@@ -9,9 +9,10 @@ from eel.context import *
 from eel.func import *
 from eel.eval import *
 from eel import prelude
+from eel import grammar
 import eel
 
-eel.parser = lark.Lark(open("eel.lark", "r", encoding="utf-8"), parser="lalr", transformer=EelTransformer())
+eel.parser = lark.Lark(grammar.grammar, parser="lalr", transformer=EelTransformer())
 
 eel.context.cur_ctx = Context({}, eel.prelude.prelude_ctx)
 
