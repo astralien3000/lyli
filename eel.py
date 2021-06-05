@@ -55,13 +55,13 @@ def global_context(self):
             raise Exception("WRONG DEFINE FORM")
     def _if(arg):
         if arg:
-            return lambda a: eval(a)
+            return lambda a: eval_one(a)
         return lambda a: None
     def _ret(*args):
         if len(args) == 1:
-            return Func.Return(eval(args[0]))
+            return Func.Return(eval_one(args[0]))
         else:
-            return Func.Return(eval(BCall([Symbol("_"), *args])))
+            return Func.Return(eval_one(BCall([Symbol("_"), *args])))
     def _import(arg):
         import importlib
         mod = importlib.import_module(str(arg))
@@ -86,9 +86,9 @@ def global_context(self):
               found = True
               #print(opexpr)
               break
-      if(callable(eval(opexpr[0]))):
-        return eval(Call(opexpr))
-      return eval(opexpr[0])
+      if(callable(eval_one(opexpr[0]))):
+        return eval_one(Call(opexpr))
+      return eval_one(opexpr[0])
     def _defstruct(*args):
         import ctypes
         name = str(args[0][0])
@@ -147,17 +147,17 @@ def global_context(self):
     def _dot(arg1, arg2):
       arg1_type = eel.context.cur_ctx["LOL::"+ str(arg1)]["type"]
       if isinstance(arg2, Call):
-        return eval(Call([_scope(arg1_type, arg2[0]), arg1] + arg2[1:]))
-      return eval(Call([_scope(arg1_type, arg2), arg1]))
+        return eval_one(Call([_scope(arg1_type, arg2[0]), arg1] + arg2[1:]))
+      return eval_one(Call([_scope(arg1_type, arg2), arg1]))
     def _block(*args):
       prev_ctx = eel.context.cur_ctx
       eel.context.cur_ctx =  Context({}, prev_ctx)
       for a in args:
-        eval(a)
+        eval_one(a)
       eel.context.cur_ctx = prev_ctx
       return None
     def _set(arg1, arg2):
-      eel.context.cur_ctx[str(arg1)] = eval(arg2)
+      eel.context.cur_ctx[str(arg1)] = eval_one(arg2)
     ret = Context({
         "_" : PyMacro(_),
         "print" : PyFunc("print", _print),
@@ -169,7 +169,7 @@ def global_context(self):
         "return" : PyMacro(_ret),
         "import" : PyMacro(_import),
         "struct" : PyMacro(_defstruct),
-        "$" : PyFunc("eval", eval),
+        "$" : PyFunc("eval_all", eval_all),
         "block" : PyMacro(_block),
         "::" : PyMacro(_scope),
         "." : PyMacro(_dot),
@@ -202,5 +202,5 @@ if __name__ == "__main__":
             print("---------------- AST BEG ----------------")
             print(ast)
             print("---------------- AST END ----------------")
-            res = eval(ast)
+            res = eval_one(ast)
             if res: print(res)

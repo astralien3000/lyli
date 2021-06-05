@@ -14,7 +14,7 @@ class EelTransformer(lark.Transformer):
         return args[0]
 
     def start(self, args):
-        return Call([Symbol("block")] + args[0])
+        return Call([Symbol("$")] + args[0])
 
     def string_expr(self, args):
         return String(str(args[0])[1:-1])

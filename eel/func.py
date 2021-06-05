@@ -9,11 +9,11 @@ import tempfile
 
 from . import ast
 from . import context
-from .eval import eval
+from .eval import eval_one
 from .context import Context
 
 def compile(exp):
-    from .eval import eval
+    from .eval_one import eval_one
     from . import ast as i
     if isinstance(exp, i.BCall):
         if isinstance(exp[0], i.PCall):
@@ -33,7 +33,7 @@ def compile(exp):
             return ret[1:]
         return str(exp)
     elif isinstance(exp, i.PCall):
-        f = eval(exp[0])
+        f = eval_one(exp[0])
         ret = f.compile_call(exp[1:])
         return ret
     elif isinstance(exp, list):
@@ -105,7 +105,7 @@ class Func(object):
         context.cur_ctx =  Context(zip(map(lambda x: str(x), self.params), args), self.ctx)
         ret = None
         for e in self.exp:
-            tmp = eval(e)
+            tmp = eval_one(e)
             if isinstance(tmp, Func.Return):
                 ret = tmp.val
                 break
@@ -153,7 +153,7 @@ class PyFunc(object):
         ret += 'PyObject* arglist = 0;'
         ret += 'PyObject* result = 0;'
         ret += 'arglist = Py_BuildValue("'+args_str+'", '+','.join(args_vals)+');'
-        ret += 'result = PyEval_CallObject(((PyObject*)'+hex(id(self.func))+'), arglist);'
+        ret += 'result = Pyeval_one_CallObject(((PyObject*)'+hex(id(self.func))+'), arglist);'
         ret += 'Py_DECREF(arglist);'
         ret += 'Py_DECREF(result);'
         ret += 'PyGILState_Release(gstate);'
@@ -170,7 +170,7 @@ class Macro(object):
     def __call__(self, *args):
         context.cur_ctx.update(zip(map(lambda x: str(x), self.params), args))
         for e in self.exp:
-            tmp = eval(e)
+            tmp = eval_one(e)
         return None
       
 class PyMacro(Macro):
