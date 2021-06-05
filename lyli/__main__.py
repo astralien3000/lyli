@@ -12,7 +12,13 @@ context.cur_ctx = context.Context({}, prelude.prelude_ctx)
 
 def main():
   import sys
-  if len(sys.argv) == 2:
+  if len(sys.argv) == 1:
+    while True:
+      raw = input(">")
+      expr = parser.parse(raw)
+      res = eval.eval_one(expr)
+      if res: print(res)
+  elif len(sys.argv) == 2:
     with open(sys.argv[1], "r") as f:
       expr = parser.parse(f.read())
       print("---------------- ast BEG ----------------")
