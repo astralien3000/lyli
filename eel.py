@@ -36,7 +36,7 @@ def global_context(self):
             params = list(map(lambda x: x[2], args[-1][0][1:]))
             params_types = list(map(lambda x: x[1], args[-1][0][1:]))
             eel.context.cur_ctx.update({
-                str(args[-1][0][0]) : Func(args[-1][0][0], args[-2], params_types, params, args[-1][1:], eel.context.cur_ctx)
+                str(args[-1][0][0]) : Func(args[-2], params_types, params, args[-1][1:], eel.context.cur_ctx)
             })
         else:
             raise Exception("WRONG DEFINE FORM")
@@ -49,14 +49,14 @@ def global_context(self):
             #print("params : " + str(params))
             #print("exp : " + str(exp))
             eel.context.cur_ctx.update({
-                str(sym) : Macro(sym, params, exp)
+                str(sym) : Macro(params, exp)
             })
         else:
             raise Exception("WRONG DEFINE FORM")
     def _if(arg):
         if arg:
-            return lambda a: eval_one(a)
-        return lambda a: None
+            return PyFunc(lambda a: eval_one(a))
+        return PyFunc(lambda a: None)
     def _ret(*args):
         if len(args) == 1:
             return Func.Return(eval_one(args[0]))
@@ -132,12 +132,12 @@ def global_context(self):
             return lambda *args: setattr(args[0], memb, args[1])
         for m in members:
             eel.context.cur_ctx.update({
-                name + "::get_" + str(m[2]) : _get(str(m[2])),
-                name + "::set_" + str(m[2]) : _set(str(m[2])),
+                name + "::get_" + str(m[2]) : PyFunc(_get(str(m[2]))),
+                name + "::set_" + str(m[2]) : PyFunc(_set(str(m[2]))),
             })
             eel.context.cur_ctx["LOL::" + name].update({
-                "get_" + str(m[2]) : _get(str(m[2])),
-                "set_" + str(m[2]) : _set(str(m[2])),
+                "get_" + str(m[2]) : PyFunc(_get(str(m[2]))),
+                "set_" + str(m[2]) : PyFunc(_set(str(m[2]))),
             })
         #print(eel.context.cur_ctx)
     def _scope(arg1, arg2):
@@ -160,16 +160,16 @@ def global_context(self):
       eel.context.cur_ctx[str(arg1)] = eval_one(arg2)
     ret = Context({
         "_" : PyMacro(_),
-        "print" : PyFunc("print", _print),
+        "print" : PyFunc(_print),
         "int" : PyMacro(_defint),
         "var" : PyMacro(_defvar),
         "fn" : PyMacro(_fn),
         "macro" : PyMacro(_macro),
-        "if" : PyFunc("if", _if),
+        "if" : PyFunc(_if),
         "return" : PyMacro(_ret),
         "import" : PyMacro(_import),
         "struct" : PyMacro(_defstruct),
-        "$" : PyFunc("eval_all", eval_all),
+        "$" : PyFunc(eval_all),
         "block" : PyMacro(_block),
         "::" : PyMacro(_scope),
         "." : PyMacro(_dot),
@@ -177,18 +177,18 @@ def global_context(self):
     }, self)
     import operator as op
     ret.update({
-        "+" : BOp("+", op.add),
-        "-" : BOp("-", op.sub),
-        "*" : BOp("*", op.mul),
-        "!" : BOp("!", op.not_),
-        "~" : BOp("~", op.inv),
-        "<" : BOp("<", op.lt),
-        ">" : BOp(">", op.gt),
-        "<=" : BOp("<=", op.le),
-        ">=" : BOp(">=", op.ge),
-        "==" : BOp("==", op.eq),
-        "!=" : BOp("!=", op.ne),
-        "||" : BOp("||", op.or_),
+        "+" : BOp(op.add),
+        "-" : BOp(op.sub),
+        "*" : BOp(op.mul),
+        "!" : BOp(op.not_),
+        "~" : BOp(op.inv),
+        "<" : BOp(op.lt),
+        ">" : BOp(op.gt),
+        "<=" : BOp(op.le),
+        ">=" : BOp(op.ge),
+        "==" : BOp(op.eq),
+        "!=" : BOp(op.ne),
+        "||" : BOp(op.or_),
     })
     return ret
 

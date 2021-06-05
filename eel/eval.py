@@ -8,13 +8,12 @@ def eval_one(x):
   elif isinstance(x, Atomic):
     return x.val
   elif isinstance(x, Call):
-    proc = eval_one(x[0])
-    if isinstance(proc, func.Macro):
+    f = eval_one(x[0])
+    if isinstance(f, func.Func):
       args = x[1:]
-      return proc(*args)
+      return f(*args)
     else:
-      args = [eval_one(exp) for exp in x[1:]]
-      return proc(*args)
+      raise TypeError("ERROR : not a Proc " + str(x[0]))
   else:
     #print("WARNING (should not happen ?) : " + str(x))
     return x
