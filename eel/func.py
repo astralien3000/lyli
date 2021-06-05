@@ -1,7 +1,6 @@
 from . import ast
 from . import context
-from .eval import eval_one
-from .context import Context
+from . import eval
 
 class Func:
     class Return(object):
@@ -14,12 +13,12 @@ class Func:
         self.restype = restype
         self.params_types = params_types
     def __call__(self, *_args):
-        args = [eval_one(exp) for exp in _args]
+        args = [eval.eval_one(exp) for exp in _args]
         prev_ctx = context.cur_ctx
-        context.cur_ctx =  Context(zip(map(lambda x: str(x), self.params), args), self.ctx)
+        context.cur_ctx =  context.Context(zip(map(lambda x: str(x), self.params), args), self.ctx)
         ret = None
         for e in self.exp:
-            tmp = eval_one(e)
+            tmp = eval.eval_one(e)
             if isinstance(tmp, Func.Return):
                 ret = tmp.val
                 break
@@ -30,14 +29,14 @@ class BOp(Func):
     def __init__(self, func):
         self.func = func
     def __call__(self, *_args):
-        args = [eval_one(exp) for exp in _args]
+        args = [eval.eval_one(exp) for exp in _args]
         return self.func(*args)
 
 class PyFunc(Func):
     def __init__(self, func):
         self.func = func
     def __call__(self, *_args):
-        args = [eval_one(exp) for exp in _args]
+        args = [eval.eval_one(exp) for exp in _args]
         return self.func(*args)
 
 class Macro(Func):
@@ -46,7 +45,7 @@ class Macro(Func):
         self.exp = ast.Call([ast.Symbol("$")] + exp)
     def __call__(self, *args):
         context.cur_ctx.update(zip(map(lambda x: str(x), self.params), args))
-        ret = eval_one(self.exp)
+        ret = eval.eval_one(self.exp)
         return ret
       
 class PyMacro(Macro):

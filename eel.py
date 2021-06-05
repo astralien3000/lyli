@@ -3,18 +3,11 @@
 
 import lark
 
-from eel.ast import *
-from eel.transformer import *
-from eel.context import *
-from eel.func import *
-from eel.eval import *
-from eel import prelude
-from eel import grammar
 import eel
 
-eel.parser = lark.Lark(grammar.grammar, parser="lalr", transformer=EelTransformer())
+eel.parser = lark.Lark(eel.grammar.grammar, parser="lalr", transformer=eel.transformer.Transformer())
 
-eel.context.cur_ctx = Context({}, eel.prelude.prelude_ctx)
+eel.context.cur_ctx = eel.context.Context({}, eel.prelude.prelude_ctx)
 
 if __name__ == "__main__":
     import sys
@@ -24,5 +17,5 @@ if __name__ == "__main__":
             print("---------------- AST BEG ----------------")
             print(ast)
             print("---------------- AST END ----------------")
-            res = eval_one(ast)
+            res = eel.eval.eval_one(ast)
             if res: print(res)
