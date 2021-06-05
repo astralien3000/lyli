@@ -143,7 +143,7 @@ def global_context(self):
     def _scope(arg1, arg2):
       if isinstance(arg2, Call):
         return Call([eel.context.cur_ctx["LOL::"+arg1][arg2[0]]] + arg2[1:])
-      return eval(eel.context.cur_ctx["LOL::"+ str(arg1)][str(arg2)])
+      return eel.context.cur_ctx["LOL::"+ str(arg1)][str(arg2)]
     def _dot(arg1, arg2):
       arg1_type = eel.context.cur_ctx["LOL::"+ str(arg1)]["type"]
       if isinstance(arg2, Call):

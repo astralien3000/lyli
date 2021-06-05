@@ -22,7 +22,7 @@ class EelTransformer(lark.Transformer):
         return String(str(args[0])[2:-2])
     
     def integer_expr(self, args):
-        return int(args[0])
+        return Integer(int(args[0]))
     
     def symbol_expr(self, args):
         #print(args[0])
