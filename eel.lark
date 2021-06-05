@@ -1,4 +1,4 @@
-start : (instr ";")* instr?
+start : instr_list
 
 instr : expr
       | stmt
@@ -13,13 +13,12 @@ atomic_expr : string_expr
             | symbol_expr
             | operator
 
-call_expr : paren_call_expr
-          | brace_call_expr
-          | array_call_expr
+call_expr : expr "(" instr_list ")"
+          | expr "{" instr_list "}"
+          | expr "[" instr_list "]"
 
-paren_call_expr : expr "(" (instr ",")* instr? ")"
-brace_call_expr : expr "{" (instr ";")* instr? "}"
-array_call_expr : expr "[" (instr ",")* instr? "]"
+instr_list : (instr ",")* instr?
+           | (instr ";")* instr?
 
 operator : PP | MM
          | DOT | ARROW

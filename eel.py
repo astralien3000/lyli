@@ -87,7 +87,7 @@ def global_context(self):
               #print(opexpr)
               break
       if(callable(eval(opexpr[0]))):
-        return eval(BCall(opexpr))
+        return eval(PCall(opexpr))
       return eval(opexpr[0])
     def _defstruct(*args):
         import ctypes
@@ -116,15 +116,15 @@ def global_context(self):
                     "value" : DefStruct(),
                     "type" : Symbol(name),
                 })
-                print(eel.context.cur_ctx)
+                #print(eel.context.cur_ctx)
             else:
                 raise Exception("WRONG DEFINE FORM" + str([*args]))
             return None
         eel.context.cur_ctx.update({
-            name : _def
+            name : PyMacro(_def)
         })
         eel.context.cur_ctx["LOL::" + name].update({
-            "def" : _def
+            "def" : PyMacro(_def)
         })
         def _get(memb):
             return lambda *args: getattr(args[0], memb)
@@ -139,7 +139,7 @@ def global_context(self):
                 "get_" + m[2] : _get(m[2]),
                 "set_" + m[2] : _set(m[2]),
             })
-        print(eel.context.cur_ctx)
+        #print(eel.context.cur_ctx)
     def _scope(arg1, arg2):
       if isinstance(arg2, PCall):
         return PCall([eel.context.cur_ctx["LOL::"+arg1][arg2[0]]] + arg2[1:])
@@ -159,18 +159,18 @@ def global_context(self):
     def _set(arg1, arg2):
       eel.context.cur_ctx[arg1] = eval(arg2)
     ret = Context({
-        "_" : _,
+        "_" : PyMacro(_),
         "print" : PyFunc("print", _print),
-        "int" : _defint,
-        "var" : _defvar,
-        "fn" : _fn,
-        "macro" : _macro,
-        "if" : _if,
-        "return" : _ret,
-        "import" : _import,
-        "struct" : _defstruct,
+        "int" : PyMacro(_defint),
+        "var" : PyMacro(_defvar),
+        "fn" : PyMacro(_fn),
+        "macro" : PyMacro(_macro),
+        "if" : PyMacro(_if),
+        "return" : PyMacro(_ret),
+        "import" : PyMacro(_import),
+        "struct" : PyMacro(_defstruct),
         "$" : PyFunc("eval", eval),
-        "block" : _block,
+        "block" : PyMacro(_block),
         "::" : PyMacro(_scope),
         "." : PyMacro(_dot),
         "=" : PyMacro(_set),

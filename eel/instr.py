@@ -11,6 +11,13 @@ class Symbol(str):
     def __str__(self):
         return ''.join(list(map(Symbol.escape, super(Symbol, self).__str__())))
 
+class String(str):
+    def __str__(self):
+        ret = '"'
+        ret += self
+        ret += '"'
+        return ret
+  
 class PCall(list):
     def __str__(self):
         ret = "("
@@ -21,13 +28,11 @@ class PCall(list):
         ret += ")"
         return ret
 
-class BCall(PCall):
-  pass
-
 class Global(list):
     def __str__(self):
         ret = ""
-        for a in self:
-            ret += str(a)
+        ret += str(self[0])
+        for a in self[1:]:
             ret += "\n"
+            ret += str(a)
         return ret

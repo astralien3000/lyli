@@ -10,7 +10,7 @@ def eval(x):
         return x
     else:
         proc = eval(x[0])
-        if isinstance(x, BCall) or isinstance(proc, func.Macro):
+        if isinstance(proc, func.Macro):
             args = x[1:]
             return proc(*args)
         else:
