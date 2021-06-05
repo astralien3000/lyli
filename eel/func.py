@@ -1,6 +1,6 @@
-from . import ast
-from . import context
-from . import eval
+import expr_tree
+import context
+import eval
 
 class Func:
     class Return(object):
@@ -42,7 +42,7 @@ class PyFunc(Func):
 class Macro(Func):
     def __init__(self, params, exp):
         self.params = params
-        self.exp = ast.Call([ast.Symbol("$")] + exp)
+        self.exp = expr_tree.Call([expr_tree.Symbol("$")] + exp)
     def __call__(self, *args):
         context.cur_ctx.update(zip(map(lambda x: str(x), self.params), args))
         ret = eval.eval_one(self.exp)
