@@ -9,7 +9,7 @@ class Context(dict):
         elif self.parent:
             return self.parent.search(key)
         else:
-            print(self)
+            #print(self)
             raise Exception("NOT FOUND : " + str(key))
     def __getitem__(self, key):
         ctx = self.search(key)
@@ -21,5 +21,12 @@ class Context(dict):
         ctx = self.search(key)
         if ctx:
             dict.__setitem__(ctx, key, val)
+    def exists(self, key):
+        try:
+          ctx = self.search(key)
+          if ctx:
+            return True
+        except Exception as e:
+          return False
 
 cur_ctx = Context()

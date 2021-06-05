@@ -27,11 +27,17 @@ def _defvar(*args):
     return None
 
 def _fn(*args):
-    if isinstance(args[-1], expr_tree.Call):
+    if len(args) == 2 and isinstance(args[-1], expr_tree.Call):
         params = list(map(lambda x: x[2], args[-1][0][1:]))
         params_types = list(map(lambda x: x[1], args[-1][0][1:]))
         context.cur_ctx.update({
             str(args[-1][0][0]) : func.Func(args[-2], params_types, params, args[-1][1:], context.cur_ctx)
+        })
+    elif len(args) == 1 and isinstance(args[-1], expr_tree.Call):
+        params = list(map(lambda x: x[2], args[-1][0][1:]))
+        params_types = list(map(lambda x: x[1], args[-1][0][1:]))
+        context.cur_ctx.update({
+            str(args[-1][0][0]) : func.Func(None, params_types, params, args[-1][1:], context.cur_ctx)
         })
     else:
         raise Exception("WRONG DEFINE FORM")

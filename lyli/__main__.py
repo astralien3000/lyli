@@ -25,7 +25,10 @@ def main():
       print(expr)
       print("---------------- ast END ----------------")
       res = eval.eval_one(expr)
-      if res: print(res)
+      if context.cur_ctx.exists("main"):
+        print("main found ! compile...")
+        with open("main", "w+") as o:
+          o.write("#! /bin/bash\n")
 
 if __name__ == "__main__":
   main()
