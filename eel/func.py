@@ -3,6 +3,8 @@
 from subprocess import call
 from ctypes import *
 
+import sysconfig
+
 import tempfile
 
 from . import instr
@@ -24,11 +26,11 @@ def compile(exp):
                 ret += compile(exp[1:])
                 ret += "}"
                 return ret
-            if exp[0][0] == "_":
-                ret = str(exp[0][1])
-                for e in exp[1:]:
-                    ret += " " + str(compile(e))
-                return ret
+        if exp[0] == "_":
+            ret = ""
+            for e in exp[1:]:
+                ret += " " + str(compile(e))
+            return ret[1:]
         return str(exp)
     elif isinstance(exp, i.PCall):
         f = eval(exp[0])
@@ -65,7 +67,7 @@ def mkCFunc(sym, restype, params, exp):
     f.close()
 
     cmd  = ["gcc", "-shared", "-fPIC", d+"/"+str(sym)+".c", "-o", d+"/"+str(sym)+".so"]
-    cmd += ["-I/usr/include/python3.5"]
+    cmd += ["-I"+sysconfig.get_paths()['include']]
     cmd += ld_flags
     cmd += ["-Wno-implicit-function-declaration"]
     call(cmd)
@@ -89,7 +91,7 @@ class Func(object):
         tmp_ctx = context.cur_ctx
         context.cur_ctx = Context(list(map(lambda p: (p, None), self.params)), ctx)
         context.cur_ctx = Context([(sym, self)], context.cur_ctx)
-        self.cfunc = mkCFunc(self.sym, self.restype, self.params, self.exp)
+        #self.cfunc = mkCFunc(self.sym, self.restype, self.params, self.exp)
         context.cur_ctx = tmp_ctx
     def compile_call(self, *args):
         ret = str(self.sym)
@@ -98,8 +100,6 @@ class Func(object):
             ret += str(compile(a))
         ret += ")"
         return ret
-    def __call__(self, *args):
-        return self.cfunc(*args)
     def prev_call(self, *args):
         prev_ctx = context.cur_ctx
         context.cur_ctx =  Context(zip(self.params, args), self.ctx)
@@ -111,6 +111,9 @@ class Func(object):
                 break
         context.cur_ctx = prev_ctx
         return ret
+    def __call__(self, *args):
+        #return self.cfunc(*args)
+        return self.prev_call(*args)
 
 class BOp(object):
     def __init__(self, sym, func):
@@ -158,3 +161,21 @@ class PyFunc(object):
         return ret
     def __call__(self, *args):
         return self.func(*args)
+
+class Macro(object):
+    def __init__(self, sym, params, exp):
+        self.params = params
+        self.exp = exp
+        self.sym = sym
+    def __call__(self, *args):
+        context.cur_ctx.update(zip(self.params, args))
+        for e in self.exp:
+            tmp = eval(e)
+        return None
+      
+class PyMacro(Macro):
+    def __init__(self, func):
+        self.func = func
+    def __call__(self, *args):
+        return self.func(*args)
+  

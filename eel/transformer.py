@@ -15,14 +15,22 @@ class EelTransformer(lark.Transformer):
     def start(self, *args):
         return Global(*args)
 
+    def string_expr(self, args):
+        return str(args[0])[1:-1]
+    def longstring_expr(self, args):
+        return str(args[0])[2:-2]
+    
     def integer_expr(self, args):
         return int(args[0])
-    def string_expr(self, args):
-        return str(args[0])
+    
     def symbol_expr(self, args):
         print(args[0])
         return Symbol(args[0])
 
+    def operator_expr(self, args):
+        print(args)
+        return Symbol(args[0])
+    
     def operator(self, args):
         return Symbol(args[0])
 
@@ -31,4 +39,4 @@ class EelTransformer(lark.Transformer):
     def brace_call_expr(self, *args):
         return BCall(*args)
     def stmt(self, *args):
-        return BCall([PCall([Symbol("_"), args[0][0]])] + args[0][1:])
+        return BCall([Symbol("_"), args[0][0]] + args[0][1:])

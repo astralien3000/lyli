@@ -13,28 +13,21 @@ class Symbol(str):
 
 class PCall(list):
     def __str__(self):
-        ret = str(self[0])
-        ret += "("
+        ret = "("
+        ret += str(self[0])
         for a in self[1:]:
+            ret += " "
             ret += str(a)
-            ret += ","
         ret += ")"
         return ret
 
-class BCall(list):
-    def __str__(self):
-        ret = str(self[0])
-        ret += "{"
-        for a in self[1:]:
-            ret += str(a)
-            ret += ";"
-        ret += "}"
-        return ret
+class BCall(PCall):
+  pass
 
 class Global(list):
     def __str__(self):
         ret = ""
         for a in self:
             ret += str(a)
-            ret += ";\n"
+            ret += "\n"
         return ret

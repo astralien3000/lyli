@@ -30,6 +30,12 @@ operator : PP | MM
          | EQ | NEQ
          | OR
          | ASSIGN
+         | EVAL
+         | SCOPE
+
+SCOPE : "::"
+
+EVAL : "$"
 
 PP : "++"
 MM : "--"
@@ -60,11 +66,15 @@ OR : "||"
 
 ASSIGN : "="
 
-string_expr : STRING
+string_expr : STRING | longstring_expr
+longstring_expr : LONGSTRING
+
 integer_expr : CONSTANTI
+
 symbol_expr : IDENTIFIER
 
 STRING : /\"[^\"\n]*\"/
+LONGSTRING : /\"\"\"([^\"]|\"\"?[^\"])+\"\"\"/
 IDENTIFIER : /[^\W\d]\w*/
 CONSTANTI : /\d+\w*/
 CONSTANTF : /\d+\.\d*\w*/

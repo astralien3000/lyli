@@ -2,7 +2,7 @@
 fn int miew(int a) {
     print(5);
     print(a);
-    return a+42;
+    return a * 10 + 42 * 10;
 };
 
 fn int loöl(int a) {
@@ -20,9 +20,9 @@ struct Test {
 
 Test test;
 
-set_a(test, 666);
-set_b(test, +(get_a(test), 1));
+test.set_a(666);
+test.set_b($(test.get_a() + 1) * 10);
 
-print(get_a(test));
-print(get_b(test));
-print(get_c(test));
+print(test.get_a());
+print(test.get_b());
+print(test.get_c());

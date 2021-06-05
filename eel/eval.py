@@ -1,6 +1,7 @@
 from .instr import *
 from .context import *
 from . import context
+from . import func
 
 def eval(x):
     if isinstance(x, Symbol):
@@ -9,7 +10,7 @@ def eval(x):
         return x
     else:
         proc = eval(x[0])
-        if isinstance(x, BCall):
+        if isinstance(x, BCall) or isinstance(proc, func.Macro):
             args = x[1:]
             return proc(*args)
         else:
