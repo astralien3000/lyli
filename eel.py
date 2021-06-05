@@ -24,8 +24,8 @@ def global_context(self):
             raise Exception("WRONG DEFINE FORM")
         return None
     def _defvar(*args):
-        if len(args) == 3 and args[1] == "=":
-            eel.context.cur_ctx.update({args[0] : args[2]})
+        if isinstance(args[0], list) and args[0][0] == '=':
+            eel.context.cur_ctx.update({args[0][1] : args[0][2]})
         elif len(args) == 1:
             eel.context.cur_ctx.update({args[0] : 0})
         else:
@@ -82,12 +82,12 @@ def global_context(self):
             if i - 1 > 0:
               before = opexpr[:i-1]
             if opexpr[i] == op:
-              opexpr = before + [PCall([opexpr[i], opexpr[i-1], opexpr[i+1]])] + after
+              opexpr = before + [Call([opexpr[i], opexpr[i-1], opexpr[i+1]])] + after
               found = True
               #print(opexpr)
               break
       if(callable(eval(opexpr[0]))):
-        return eval(PCall(opexpr))
+        return eval(Call(opexpr))
       return eval(opexpr[0])
     def _defstruct(*args):
         import ctypes
@@ -141,14 +141,14 @@ def global_context(self):
             })
         #print(eel.context.cur_ctx)
     def _scope(arg1, arg2):
-      if isinstance(arg2, PCall):
-        return PCall([eel.context.cur_ctx["LOL::"+arg1][arg2[0]]] + arg2[1:])
+      if isinstance(arg2, Call):
+        return Call([eel.context.cur_ctx["LOL::"+arg1][arg2[0]]] + arg2[1:])
       return eval(eel.context.cur_ctx["LOL::"+arg1][arg2])
     def _dot(arg1, arg2):
       arg1_type = eel.context.cur_ctx["LOL::"+arg1]["type"]
-      if isinstance(arg2, PCall):
-        return PCall([_scope(arg1_type, arg2[0]), arg1] + arg2[1:])
-      return PCall([_scope(arg1_type, arg2), arg1])
+      if isinstance(arg2, Call):
+        return eval(Call([_scope(arg1_type, arg2[0]), arg1] + arg2[1:]))
+      return eval(Call([_scope(arg1_type, arg2), arg1]))
     def _block(*args):
       prev_ctx = eel.context.cur_ctx
       eel.context.cur_ctx =  Context({}, prev_ctx)
@@ -165,7 +165,7 @@ def global_context(self):
         "var" : PyMacro(_defvar),
         "fn" : PyMacro(_fn),
         "macro" : PyMacro(_macro),
-        "if" : PyMacro(_if),
+        "if" : PyFunc("if", _if),
         "return" : PyMacro(_ret),
         "import" : PyMacro(_import),
         "struct" : PyMacro(_defstruct),
@@ -202,7 +202,5 @@ if __name__ == "__main__":
             print("---------------- AST BEG ----------------")
             print(ast)
             print("---------------- AST END ----------------")
-            for e in ast:
-                res = eval(e)
-                if res: print(res)
-    
+            res = eval(ast)
+            if res: print(res)

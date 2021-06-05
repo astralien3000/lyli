@@ -18,7 +18,7 @@ class String(str):
         ret += '"'
         return ret
   
-class PCall(list):
+class Call(list):
     def __str__(self):
         ret = "("
         ret += str(self[0])

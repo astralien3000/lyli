@@ -9,12 +9,12 @@ class EelTransformer(lark.Transformer):
         return args[0]
     def call_expr(self, args):
         #print("CALL_EXPR " + str(args))
-        return PCall([args[0]] + args[1])
+        return Call([args[0]] + args[1])
     def atomic_expr(self, args):
         return args[0]
 
     def start(self, args):
-        return Global(args[0])
+        return Call([Symbol("block")] + args[0])
 
     def string_expr(self, args):
         return String(str(args[0])[1:-1])
@@ -28,16 +28,12 @@ class EelTransformer(lark.Transformer):
         #print(args[0])
         return Symbol(args[0])
 
-    def operator_expr(self, args):
-        #print(args)
-        return Symbol(args[0])
-    
     def operator(self, args):
         return Symbol(args[0])
 
     def stmt(self, *args):
         #print("STMT " + str(*args))
-        return PCall([Symbol("_"), args[0][0]] + args[0][1:])
+        return Call([Symbol("_"), args[0][0]] + args[0][1:])
       
     def instr_list(self, args):
         return args
