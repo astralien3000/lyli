@@ -5,6 +5,7 @@ import lyli.grammar as grammar
 import lyli.transformer as transformer
 import lyli.prelude as prelude
 import lyli.context as context
+import lyli.compile as compile
 
 parser = lark.Lark(grammar.grammar, parser="lalr", transformer=transformer.Transformer())
 
@@ -27,8 +28,8 @@ def main():
       res = eval.eval_one(expr)
       if context.cur_ctx.exists("main"):
         print("main found ! compile...")
-        with open("main", "w+") as o:
-          o.write("#! /bin/bash\n")
+        compile.compile_main(context.cur_ctx["main"])
+        
 
 if __name__ == "__main__":
   main()

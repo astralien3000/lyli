@@ -24,6 +24,14 @@ class Func:
                 break
         context.cur_ctx = prev_ctx
         return ret
+    def __str__(self):
+        ret = "[fn "
+        ret += str(self.params) + " -> "
+        ret += str(self.restype) + " \n"
+        for e in self.exp:
+          ret += str(e) + "\n"
+        ret += "]"
+        return ret
 
 class BOp(Func):
     def __init__(self, func):
@@ -38,6 +46,11 @@ class PyFunc(Func):
     def __call__(self, *_args):
         args = [eval.eval_one(exp) for exp in _args]
         return self.func(*args)
+    def __str__(self):
+        ret = "[pyfn "
+        ret += str(self.func)
+        ret += "]"
+        return ret
 
 class Macro(Func):
     def __init__(self, params, exp):
