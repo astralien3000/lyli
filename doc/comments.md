@@ -1,0 +1,1 @@
+C comments : // and /**/, not negotiable

@@ -40,15 +40,33 @@ fn fib(n) {
 
 ## Shadowing
 
-### Forms
+### Polymorphism is a form of shadowing
+
+```
+fn test(a : i32, b : i32) -> i32 { a };
+print(typeof(test));
+fn test(a : u8, b : i32) -> u8 { a };
+print(typeof(test));
+```
+
+```
+fn(i32(i32,i8))
+polymorphic_function(...TODO...)
+```
+
+```
+let test = fn(a : i32, b : i32) -> i32 { a };
+let test = polymorphic_function(test, fn test(a : u8, b : i32) -> u8 { a });
+```
+
+### Use of let form
 
 ```
 fn test() { print("first") };
-fn test() { print("second") };
-let test = fn() { print("third") };
+let test = fn() { print("second") };
 ```
 
-Prototypes needs to be exactly the same.
+Warning, this performs a reset on all polymorph versions of the function.
 
 TODO : check conflicts with polymorphism
 

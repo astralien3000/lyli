@@ -1,0 +1,1 @@
+should behave like C / C++ unions
