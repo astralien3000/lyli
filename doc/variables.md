@@ -49,6 +49,8 @@ hello
 
 ## Shadowing in functions
 
+TODO : check lifetime
+
 ```
 let a = "global";
 
