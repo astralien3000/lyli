@@ -1,6 +1,6 @@
 # Lyli
 
-Lyrical Lisp
+Welcome to the Lyli (Lyrical Lisp) programming language repository !
 
 # Disclaimer
 
@@ -10,7 +10,18 @@ This repository is a work in progress and is not intended to be used by anyone u
 
 The basic principle of the Lyli language is to be a Lisp language that looks like C.
 
-# Install
+But what does it looks like ?
+
+```
+fn main() {
+  print("Hello, world!")
+}
+```
+
+Why does it looks more like a mix between Python and Rust ?
+Well.. Things happened...
+
+# Setup
 
 ```sh
 git clone https://github.com/astralien3000/lyli.git

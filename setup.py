@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
+from os import path
+
+def get_long_description():
+    this_directory = path.abspath(path.dirname(__file__))
+    with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+        long_description = f.read()
+    return long_description
 
 setup(
     name="lyli",
     version="0.0.1",
     description="Lyli programming language",
-    long_description="",
+    long_description=get_long_description(),
     long_description_content_type="text/markdown",
     url="https://github.com/astralien3000/lyli",
     author="Loïc Dauphin",
