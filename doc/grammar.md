@@ -142,6 +142,16 @@ _(fn, fib(n) (
 )),
 ```
 
+## Some keywords
+
+Operators are defined as keywords to be able to write the without needing to separate them with space from other symbols.
+
+```
+module::function;
+a+b;
+a.method();
+```
+
 ## The problem of parenthesis in mathematical operations
 
 ### Weird expression tree
