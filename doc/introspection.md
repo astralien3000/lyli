@@ -33,6 +33,8 @@ let expr = quote(a);
 
 ### Current module is "self"
 
+In self, all members defined are public, even if not externally public.
+
 ### Get all public members
 
 ```
