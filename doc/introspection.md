@@ -72,3 +72,14 @@ print(expr);
 mod module (...)
 ```
 
+## Functions
+
+## Structs
+
+## Traits
+
+## Enums
+
+## Unions
+
+## Variants
