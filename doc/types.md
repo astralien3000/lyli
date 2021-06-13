@@ -69,8 +69,6 @@ also try to see Python...
 
 ## literals
 
-### Vanilla
-
 ```
 > typeof(1);
 generic_int
@@ -80,31 +78,6 @@ generic_float
 generic_string
 ```
 
-### Suffixed
-
-```
-> typeof(1u8);
-u8
-> typeof(1u16);
-u16
-> typeof(1u32);
-u32
-> typeof(1u64);
-u64
-> typeof(1i8);
-i8
-> typeof(1i16);
-i16
-> typeof(1i32);
-i32
-> typeof(1i64);
-i64
-> typeof(1.0f32);
-f32
-> typeof(1.0f64);
-f64
-```
-
 ## Generic types
 
 ### Simple
@@ -112,7 +85,7 @@ f64
 ```
 let a = 1;
 print(typeof(a));
-let b = 1u32 + a;
+let b = u32(1) + a;
 print(typeof(b));
 print(typeof(a));
 ```
@@ -128,7 +101,7 @@ u32
 ```
 let a = array[1,2,3,4,5];
 print(typeof(a));
-let b = 1u32 + a[0];
+let b = u32(1) + a[0];
 print(typeof(b));
 print(typeof(a));
 ```
