@@ -80,19 +80,17 @@ float_expr : FLOAT_LITERAL
 
 symbol_expr : IDENTIFIER
 
-INT_LITERAL : /[1-9]([0-9]|_[0-9])*/ INTEGER_SUFFIX? WS
-BIN_LITERAL : /0b[01]([01]|_[01])*/ INTEGER_SUFFIX?
-OCT_LITERAL : /0o[0-7]([0-7]|_[0-7])*/ INTEGER_SUFFIX?
-DEC_LITERAL : /0d[0-9]([0-9]|_[0-9])*/ INTEGER_SUFFIX?
-HEX_LITERAL : /0x[0-9a-fA-F]([0-9a-fA-F]|_[0-9a-fA-F])*/ INTEGER_SUFFIX?
-ZERO_LITERAL : /0/ INTEGER_SUFFIX?
+INT_LITERAL : /[1-9]([0-9]|_[0-9])*/
+BIN_LITERAL : /0b[01]([01]|_[01])*/
+OCT_LITERAL : /0o[0-7]([0-7]|_[0-7])*/
+DEC_LITERAL : /0d[0-9]([0-9]|_[0-9])*/
+HEX_LITERAL : /0x[0-9a-fA-F]([0-9a-fA-F]|_[0-9a-fA-F])*/
+ZERO_LITERAL : /0/
 
-INTEGER_SUFFIX : "u8"|"u16"|"u32"|"u64"
-               | "i8"|"i16"|"i32"|"i64"
-
-FLOAT_LITERAL : /((\d+\.[\d_]*|\.[\d_]+)(e[-+]?\d+)?|\d+(e[-+]?\d+))/ FLOAT_SUFFIX?
-
-FLOAT_SUFFIX : "f32"|"f64"
+FLOAT_LITERAL : FLOAT_INTEGER (FLOAT_DECIMAL|FLOAT_EXPONENT|FLOAT_DECIMAL FLOAT_EXPONENT)
+FLOAT_INTEGER : /(0|[1-9]([0-9]|_[0-9])*)/
+FLOAT_DECIMAL : /\.[0-9]([0-9]|_[0-9])*/
+FLOAT_EXPONENT : /[eE][0-9]([0-9]|_[0-9])*/
 
 STRING : /\"[^\"\\n]*\"/
 LONGSTRING : /\"\"\"([^\"]|\"\"?[^\"])+\"\"\"/
