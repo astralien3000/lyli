@@ -26,7 +26,15 @@ class Integer(Atomic):
   def __init__(self, val):
     self.str = val
     self.val = lyli.literal.get_int(val)
-    self.type = lyli.literal.get_type(val)
+    self.type = lyli.literal.get_int_type(val)
+  def __str__(self):
+    return str(self.val) + str(self.type)
+
+class Float(Atomic):
+  def __init__(self, val):
+    self.str = val
+    self.val = lyli.literal.get_float(val)
+    self.type = lyli.literal.get_float_type(val)
   def __str__(self):
     return str(self.val) + str(self.type)
 

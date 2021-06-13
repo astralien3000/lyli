@@ -16,7 +16,7 @@ def split_int(str):
     body = str
   return (prefix, body, suffix)
 
-def get_base(str):
+def get_int_base(str):
   (prefix,body,suffix) = split_int(str)
   convert = {
     None : 10,
@@ -28,10 +28,28 @@ def get_base(str):
   return convert[prefix]
 
 def get_int(str):
-  base = get_base(str)
+  base = get_int_base(str)
   body = split_int(str)[1]
   return int(body, base)
 
-def get_type(str):
+def get_int_type(str):
   suffix = split_int(str)[2]
+  return suffix if suffix else ""
+
+def split_float(str):
+  body = None
+  suffix = None
+  if str[-3:] in ["f32","f64"]:
+    suffix = str[-3:]
+    body = str[:-3]
+  else:
+    body = str
+  return (body, suffix)
+
+def get_float(str):
+  body = split_float(str)[0]
+  return float(body)
+
+def get_float_type(str):
+  suffix = split_float(str)[1]
   return suffix if suffix else ""
