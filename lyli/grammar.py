@@ -9,6 +9,7 @@ expr : atomic_expr
 stmt : expr (expr)+
 
 atomic_expr : string_expr
+            | longstring_expr
             | float_expr
             | integer_expr
             | symbol_expr
@@ -66,7 +67,7 @@ OR : "||"
 
 ASSIGN : "="
 
-string_expr : STRING | longstring_expr
+string_expr : STRING
 longstring_expr : LONGSTRING
 
 integer_expr : INT_LITERAL

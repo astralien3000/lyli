@@ -19,7 +19,7 @@ class Transformer(lark.Transformer):
     def string_expr(self, args):
         return ast.String(str(args[0])[1:-1])
     def longstring_expr(self, args):
-        return ast.String(str(args[0])[2:-2])
+        return ast.String(str(args[0])[3:-3])
 
     def integer_expr(self, args):
         return ast.Integer(str(args[0]))

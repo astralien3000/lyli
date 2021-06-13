@@ -9,3 +9,9 @@ a
 long
 string
 """;
+
+"""this is a (useless) long string""";
+
+"""
+"I use double quotes as I want !"
+""";
