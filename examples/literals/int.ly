@@ -1,5 +1,5 @@
 
-// Decimal
+// Implicit Decimal
 
 0;
 1;
@@ -8,6 +8,16 @@
 666;
 1_000;
 99_99;
+
+// Explicit Decimal
+
+0d0;
+0d1;
+0d9;
+0d42;
+0d666;
+0d1_000;
+0d99_99;
 
 // Binary
 

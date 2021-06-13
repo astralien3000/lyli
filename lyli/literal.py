@@ -3,7 +3,7 @@ def split_int(str):
   prefix = None
   body = None
   suffix = None
-  if str[:2] in ["0b","0x","0o"]:
+  if str[:2] in ["0b","0o","0d","0x"]:
     prefix = str[:2]
     str = str[2:]
   if str[-2:] in ["i8","u8"]:
@@ -21,8 +21,9 @@ def get_base(str):
   convert = {
     None : 10,
     "0b" : 2,
-    "0x" : 16,
     "0o" : 8,
+    "0d" : 10,
+    "0x" : 16,
   }
   return convert[prefix]
 
