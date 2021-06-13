@@ -10,6 +10,7 @@ stmt : expr (expr)+
 
 atomic_expr : string_expr
             | longstring_expr
+            | char_expr
             | float_expr
             | integer_expr
             | symbol_expr
@@ -68,7 +69,10 @@ OR : "||"
 ASSIGN : "="
 
 string_expr : STRING
+
 longstring_expr : LONGSTRING
+
+char_expr : CHAR_LITERAL
 
 integer_expr : INT_LITERAL
              | BIN_LITERAL
@@ -95,6 +99,7 @@ FLOAT_EXPONENT : /[eE][0-9]([0-9]|_[0-9])*/
 
 STRING : /\"[^\"\\n]*\"/
 LONGSTRING : /\"\"\"([^\"]|\"\"?[^\"])+\"\"\"/
+CHAR_LITERAL : /'[^'\\n]'/
 
 IDENTIFIER : /[^\W\d]\w*/
 

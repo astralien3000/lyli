@@ -22,6 +22,12 @@ class String(Atomic):
   def __str__(self):
     return self.val
 
+class Char(Atomic):
+  def __init__(self, val):
+    self.val = val
+  def __str__(self):
+    return self.val
+
 class Integer(Atomic):
   def __init__(self, val):
     self.str = val

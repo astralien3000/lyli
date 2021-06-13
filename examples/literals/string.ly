@@ -15,3 +15,5 @@ string
 """
 "I use double quotes as I want !"
 """;
+
+"smiley ! 😃";
