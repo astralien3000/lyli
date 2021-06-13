@@ -1,4 +1,4 @@
-import lyli.expr_tree as expr_tree
+import lyli.ast as ast
 import lyli.context as context
 import lyli.eval as eval
 
@@ -55,7 +55,7 @@ class PyFunc(Func):
 class Macro(Func):
     def __init__(self, params, exp):
         self.params = params
-        self.exp = expr_tree.Call([expr_tree.Symbol("$")] + exp)
+        self.exp = ast.Call([ast.Symbol("$")] + exp)
     def __call__(self, *args):
         context.cur_ctx.update(zip(map(lambda x: str(x), self.params), args))
         ret = eval.eval_one(self.exp)

@@ -1,5 +1,5 @@
 import lyli.context as context
-import lyli.expr_tree as expr_tree
+import lyli.ast as ast
 import lyli.func as func
 import lyli.eval as eval
 
@@ -9,7 +9,7 @@ def _print(args):
     print(args)
 
 def _defint(*args):
-    if isinstance(args[0], expr_tree.Call) and str(args[0][0]) == '=':
+    if isinstance(args[0], ast.Call) and str(args[0][0]) == '=':
         context.cur_ctx.update({str(args[0][1]) : args[0][2]})
     elif len(args) == 1:
         context.cur_ctx.update({str(args[0]) : 0})
@@ -18,7 +18,7 @@ def _defint(*args):
     return None
 
 def _defvar(*args):
-    if isinstance(args[0], expr_tree.Call) and args[0][0] == '=':
+    if isinstance(args[0], ast.Call) and args[0][0] == '=':
         context.cur_ctx.update({str(args[0][1]) : args[0][2]})
     elif len(args) == 1:
         context.cur_ctx.update({str(args[0]) : 0})
@@ -27,13 +27,13 @@ def _defvar(*args):
     return None
 
 def _fn(*args):
-    if len(args) == 2 and isinstance(args[-1], expr_tree.Call):
+    if len(args) == 2 and isinstance(args[-1], ast.Call):
         params = list(map(lambda x: x[2], args[-1][0][1:]))
         params_types = list(map(lambda x: x[1], args[-1][0][1:]))
         context.cur_ctx.update({
             str(args[-1][0][0]) : func.Func(args[-2], params_types, params, args[-1][1:], context.cur_ctx)
         })
-    elif len(args) == 1 and isinstance(args[-1], expr_tree.Call):
+    elif len(args) == 1 and isinstance(args[-1], ast.Call):
         params = list(map(lambda x: x[2], args[-1][0][1:]))
         params_types = list(map(lambda x: x[1], args[-1][0][1:]))
         context.cur_ctx.update({
@@ -43,7 +43,7 @@ def _fn(*args):
         raise Exception("WRONG DEFINE FORM")
 
 def _macro(*args):
-    if isinstance(args[0], expr_tree.Call):
+    if isinstance(args[0], ast.Call):
         sym = args[0][0][0]
         params = args[0][0][1:]
         exp = args[0][1:]
@@ -65,7 +65,7 @@ def _ret(*args):
     if len(args) == 1:
         return func.Func.Return(eval.eval_one(args[0]))
     else:
-        return func.Func.Return(eval.eval_one(expr_tree.Call([expr_tree.Symbol("_"), *args])))
+        return func.Func.Return(eval.eval_one(ast.Call([ast.Symbol("_"), *args])))
 
 def _import(arg):
     import importlib
@@ -88,12 +88,12 @@ def _(*args):
         if i - 1 > 0:
           before = opexpr[:i-1]
         if str(opexpr[i]) == op:
-          opexpr = before + [expr_tree.Call([opexpr[i], opexpr[i-1], opexpr[i+1]])] + after
+          opexpr = before + [ast.Call([opexpr[i], opexpr[i-1], opexpr[i+1]])] + after
           found = True
           #print(opexpr)
           break
   if(callable(eval.eval_one(opexpr[0]))):
-    return eval.eval_one(expr_tree.Call(opexpr))
+    return eval.eval_one(ast.Call(opexpr))
   return eval.eval_one(opexpr[0])
 
 def _defstruct(*args):
@@ -114,14 +114,14 @@ def _defstruct(*args):
         if len(args) == 1:
             context.cur_ctx.update({
                 str(args[0]) : DefStruct(),
-                str(args[0]) + "::type" : expr_tree.Symbol(name),
+                str(args[0]) + "::type" : ast.Symbol(name),
             })
             context.cur_ctx.update({
                 "LOL::" + str(args[0]) : context.Context()
             })
             context.cur_ctx["LOL::" + str(args[0])].update({
                 "value" : DefStruct(),
-                "type" : expr_tree.Symbol(name),
+                "type" : ast.Symbol(name),
             })
             #print(context.cur_ctx)
         else:
@@ -149,15 +149,15 @@ def _defstruct(*args):
     #print(context.cur_ctx)
 
 def _scope(arg1, arg2):
-  if isinstance(arg2, expr_tree.Call):
-    return expr_tree.Call([context.cur_ctx["LOL::"+arg1][arg2[0]]] + arg2[1:])
+  if isinstance(arg2, ast.Call):
+    return ast.Call([context.cur_ctx["LOL::"+arg1][arg2[0]]] + arg2[1:])
   return context.cur_ctx["LOL::"+ str(arg1)][str(arg2)]
 
 def _dot(arg1, arg2):
   arg1_type = context.cur_ctx["LOL::"+ str(arg1)]["type"]
-  if isinstance(arg2, expr_tree.Call):
-    return eval.eval_one(expr_tree.Call([_scope(arg1_type, arg2[0]), arg1] + arg2[1:]))
-  return eval.eval_one(expr_tree.Call([_scope(arg1_type, arg2), arg1]))
+  if isinstance(arg2, ast.Call):
+    return eval.eval_one(ast.Call([_scope(arg1_type, arg2[0]), arg1] + arg2[1:]))
+  return eval.eval_one(ast.Call([_scope(arg1_type, arg2), arg1]))
 
 def _block(*args):
   prev_ctx = context.cur_ctx
