@@ -8,3 +8,5 @@ parse
 build
 dist
 *.egg-info
+__lycache__
+

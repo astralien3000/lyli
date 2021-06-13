@@ -1,9 +1,16 @@
 import subprocess
+import os
 
 import lyli.ast as ast
 import lyli.context as context
 import lyli.func as func
 import lyli.eval as eval
+
+def get_cache_dir():
+  ret = os.path.join(".", "__lycache__")
+  if not os.path.exists(ret):
+    os.makedirs(ret)
+  return ret
 
 def get_python_cflags():
   python_config_process = subprocess.run(["python3-config", "--cflags"], capture_output=True)
@@ -16,10 +23,12 @@ def get_python_ldflags():
   return list(filter(lambda x: len(x) > 0, python_config_raw))
 
 def compile_main(fn):
-  with open("main.c", "w+") as f:
+  c_path = os.path.join(get_cache_dir(), "main.c")
+  o_path = os.path.join(get_cache_dir(), "main.o")
+  with open(c_path, "w+") as f:
     f.write(gen_main(fn))
-  subprocess.run(["gcc", "-fPIE", "-c", "main.c", "-o", "main.o"] + get_python_cflags())
-  subprocess.run(["gcc", "main.o", "-o", "main"] + get_python_ldflags())
+  subprocess.run(["gcc", "-fPIE", "-c", c_path, "-o", o_path] + get_python_cflags())
+  subprocess.run(["gcc", o_path, "-o", "main"] + get_python_ldflags())
   
 def gen_main(fn):
   code  = """
