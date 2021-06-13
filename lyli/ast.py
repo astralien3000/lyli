@@ -1,3 +1,4 @@
+import lyli.literal
 
 class Expr:
   pass
@@ -23,9 +24,11 @@ class String(Atomic):
 
 class Integer(Atomic):
   def __init__(self, val):
-    self.val = val
+    self.str = val
+    self.val = lyli.literal.get_int(val)
+    self.type = lyli.literal.get_type(val)
   def __str__(self):
-    return str(self.val)
+    return str(self.val) + str(self.type)
 
 class Call(Expr):
   def __init__(self, items):

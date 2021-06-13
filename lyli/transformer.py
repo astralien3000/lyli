@@ -22,7 +22,7 @@ class Transformer(lark.Transformer):
         return ast.String(str(args[0])[2:-2])
     
     def integer_expr(self, args):
-        return ast.Integer(int(args[0]))
+        return ast.Integer(str(args[0]))
     
     def symbol_expr(self, args):
         #print(args[0])
