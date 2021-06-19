@@ -6,7 +6,7 @@ def eval_one(x):
   if isinstance(x, ast.Symbol):
     return context.cur_ctx[str(x)]
   elif isinstance(x, ast.Atomic):
-    return x.val
+    return x
   elif isinstance(x, ast.Call):
     f = eval_one(x[0])
     if isinstance(f, func.Func):

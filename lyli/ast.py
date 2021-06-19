@@ -1,6 +1,7 @@
 import lyli.literal
+import lyli.type
 
-class Expr:
+class Expr(lyli.type.Object):
   pass
 
 class Atomic(Expr):
@@ -19,12 +20,14 @@ class Symbol(Atomic):
 class String(Atomic):
   def __init__(self, val):
     self.val = val
+    lyli.type.Object.__init__(self, val, "str")
   def __str__(self):
     return self.val
 
 class Char(Atomic):
   def __init__(self, val):
     self.val = val
+    lyli.type.Object.__init__(self, val, "char")
   def __str__(self):
     return self.val
 
@@ -32,6 +35,7 @@ class Integer(Atomic):
   def __init__(self, val):
     self.str = val
     self.val = lyli.literal.get_int(val)
+    lyli.type.Object.__init__(self, val, "integer")
   def __str__(self):
     return str(self.val)
 
@@ -39,6 +43,7 @@ class Float(Atomic):
   def __init__(self, val):
     self.str = val
     self.val = float(val)
+    lyli.type.Object.__init__(self, val, "float")
   def __str__(self):
     return str(self.val)
 

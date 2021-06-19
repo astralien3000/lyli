@@ -2,23 +2,15 @@ import lyli.context as context
 import lyli.ast as ast
 import lyli.func as func
 import lyli.eval as eval
+import lyli.type
 
 import operator
 
 def _print(args):
     print(args)
 
-def _defint(*args):
+def _let(*args):
     if isinstance(args[0], ast.Call) and str(args[0][0]) == '=':
-        context.cur_ctx.update({str(args[0][1]) : args[0][2]})
-    elif len(args) == 1:
-        context.cur_ctx.update({str(args[0]) : 0})
-    else:
-        raise Exception("WRONG DEFINE FORM")
-    return None
-
-def _defvar(*args):
-    if isinstance(args[0], ast.Call) and args[0][0] == '=':
         context.cur_ctx.update({str(args[0][1]) : args[0][2]})
     elif len(args) == 1:
         context.cur_ctx.update({str(args[0]) : 0})
@@ -170,11 +162,14 @@ def _block(*args):
 def _set(arg1, arg2):
   context.cur_ctx[str(arg1)] = eval.eval_one(arg2)
 
+def _typeof(arg):
+  return context.cur_ctx[arg.type]
+
 prelude_ctx = context.Context({
     "_" : func.PyMacro(_),
     "print" : func.PyFunc(_print),
-    "int" : func.PyMacro(_defint),
-    "var" : func.PyMacro(_defvar),
+    "int" : func.PyMacro(_let),
+    "let" : func.PyMacro(_let),
     "fn" : func.PyMacro(_fn),
     "macro" : func.PyMacro(_macro),
     "if" : func.PyFunc(_if),
@@ -199,6 +194,16 @@ prelude_ctx = context.Context({
     "!=" : func.BOp(operator.ne),
     "||" : func.BOp(operator.or_),
 
-    "true" : True,
-    "false" : False,
+    "true" : lyli.type.Object(True, "bool"),
+    "false" : lyli.type.Object(False, "bool"),
+    
+    "type" : lyli.type.Object("type", "type"),
+    "bool" : lyli.type.Object("bool", "type"),
+    
+    "integer" : lyli.type.Object("integer", "type"),
+    "float" : lyli.type.Object("float", "type"),
+    "char" : lyli.type.Object("char", "type"),
+    "str" : lyli.type.Object("str", "type"),
+    
+    "typeof" : func.PyFunc(_typeof),
 })
