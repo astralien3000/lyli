@@ -198,4 +198,7 @@ prelude_ctx = context.Context({
     "==" : func.BOp(operator.eq),
     "!=" : func.BOp(operator.ne),
     "||" : func.BOp(operator.or_),
+
+    "true" : True,
+    "false" : False,
 })
