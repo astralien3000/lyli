@@ -1,7 +1,6 @@
 import lark;
 
-var a = Lark(""" 
+let a = Lark(""" 
 start : "a" "+" "b" 
 """);
 int b = Lark("start : ");
-

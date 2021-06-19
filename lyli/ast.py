@@ -34,8 +34,8 @@ class Char(Atomic):
 class Integer(Atomic):
   def __init__(self, val):
     self.str = val
-    self.val = lyli.literal.get_int(val)
-    lyli.type.Object.__init__(self, val, "integer")
+    self.int = lyli.literal.get_int(val)
+    lyli.type.Object.__init__(self, self.int, "integer")
   def __str__(self):
     return str(self.val)
 

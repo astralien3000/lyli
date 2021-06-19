@@ -163,7 +163,12 @@ def _set(arg1, arg2):
   context.cur_ctx[str(arg1)] = eval.eval_one(arg2)
 
 def _typeof(arg):
-  return context.cur_ctx[arg.type]
+  if isinstance(arg, ast.Symbol):
+    return context.cur_ctx[eval.eval_one(arg).type]
+  elif isinstance(arg, ast.Atomic):
+    return context.cur_ctx[arg.type]
+  else:
+    pass#return context.cur_ctx[eval.eval_one(arg).type]
 
 prelude_ctx = context.Context({
     "_" : func.PyMacro(_),
@@ -194,7 +199,7 @@ prelude_ctx = context.Context({
     "!=" : func.BOp(operator.ne),
     "||" : func.BOp(operator.or_),
 
-    "typeof" : func.PyFunc(_typeof),
+    "typeof" : func.PyMacro(_typeof),
 
     "true" : lyli.type.Object(True, "bool"),
     "false" : lyli.type.Object(False, "bool"),
