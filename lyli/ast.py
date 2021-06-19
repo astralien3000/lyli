@@ -32,17 +32,15 @@ class Integer(Atomic):
   def __init__(self, val):
     self.str = val
     self.val = lyli.literal.get_int(val)
-    self.type = lyli.literal.get_int_type(val)
   def __str__(self):
-    return str(self.val) + str(self.type)
+    return str(self.val)
 
 class Float(Atomic):
   def __init__(self, val):
     self.str = val
-    self.val = lyli.literal.get_float(val)
-    self.type = lyli.literal.get_float_type(val)
+    self.val = float(val)
   def __str__(self):
-    return str(self.val) + str(self.type)
+    return str(self.val)
 
 class Call(Expr):
   def __init__(self, items):
