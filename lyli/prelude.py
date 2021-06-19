@@ -194,6 +194,8 @@ prelude_ctx = context.Context({
     "!=" : func.BOp(operator.ne),
     "||" : func.BOp(operator.or_),
 
+    "typeof" : func.PyFunc(_typeof),
+
     "true" : lyli.type.Object(True, "bool"),
     "false" : lyli.type.Object(False, "bool"),
     
@@ -204,6 +206,11 @@ prelude_ctx = context.Context({
     "float" : lyli.type.Object("float", "type"),
     "char" : lyli.type.Object("char", "type"),
     "str" : lyli.type.Object("str", "type"),
+
+    "func.Func" : lyli.type.Object("func.Func", "type"),
+    "func.PyFunc" : lyli.type.Object("func.PyFunc", "type"),
+    "func.BOp" : lyli.type.Object("func.BOp", "type"),
+    "func.Macro" : lyli.type.Object("func.Macro", "type"),
+    "func.PyMacro" : lyli.type.Object("func.PyMacro", "type"),
     
-    "typeof" : func.PyFunc(_typeof),
 })
