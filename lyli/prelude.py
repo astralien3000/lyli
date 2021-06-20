@@ -9,6 +9,12 @@ import operator
 def _print(args):
     print(args)
 
+def _print_bool(arg):
+    if arg:
+      print("true")
+    else:
+      print("false")
+
 def _let(*args):
     if isinstance(args[0], ast.Call) and str(args[0][0]) == '=':
         context.cur_ctx.update({str(args[0][1]) : args[0][2]})
@@ -162,17 +168,17 @@ def _block(*args):
 def _set(arg1, arg2):
   context.cur_ctx[str(arg1)] = eval.eval_one(arg2)
 
-def _typeof(arg):
-  if isinstance(arg, ast.Symbol):
-    return context.cur_ctx[eval.eval_one(arg).type]
-  elif isinstance(arg, ast.Atomic):
-    return context.cur_ctx[arg.type]
-  else:
-    pass
-
 prelude_ctx = context.Context({
     "_" : func.PyMacro(_),
-    "print" : func.PyFunc(_print),
+    
+    "print" : func.PolymorphicFunc([
+      func.TypedPyFunc(["bool"], _print_bool),
+      func.TypedPyFunc(["integer"], _print),
+      func.TypedPyFunc(["float"], _print),
+      func.TypedPyFunc(["str"], _print),
+      func.TypedPyFunc(["char"], _print),
+    ]),
+    
     "int" : func.PyMacro(_let),
     "let" : func.PyMacro(_let),
     "fn" : func.PyMacro(_fn),
@@ -199,7 +205,7 @@ prelude_ctx = context.Context({
     "!=" : func.BOp(operator.ne),
     "||" : func.BOp(operator.or_),
 
-    "typeof" : func.PyMacro(_typeof),
+    "typeof" : func.PyMacro(func.typeof),
 
     "true" : lyli.type.Object(True, "bool"),
     "false" : lyli.type.Object(False, "bool"),

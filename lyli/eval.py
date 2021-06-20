@@ -4,7 +4,7 @@ import lyli.func as func
 
 def eval_one(x):
   if isinstance(x, ast.Symbol):
-    return context.cur_ctx[str(x)]
+    return context.cur_ctx[str(x)].val
   elif isinstance(x, ast.Atomic):
     return x.val
   elif isinstance(x, ast.Call):
