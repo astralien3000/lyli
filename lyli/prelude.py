@@ -7,7 +7,7 @@ import lyli.type
 import operator
 
 def _print(args):
-    print(args)
+    print(args.val)
 
 def _print_bool(arg):
     if arg:
@@ -55,9 +55,9 @@ def _macro(*args):
         raise Exception("WRONG DEFINE FORM")
 
 def _if(arg):
-    if arg:
-        return func.PyFunc(lambda a: eval.eval_one(a))
-    return func.PyFunc(lambda a: None)
+    if arg.val:
+        return func.PyMacro(lambda a: eval.eval_one(a))
+    return func.PyMacro(lambda a: None)
 
 def _ret(*args):
     if len(args) == 1:
@@ -132,9 +132,9 @@ def _defstruct(*args):
         "def" : func.PyMacro(_def)
     })
     def _get(memb):
-        return lambda *args: getattr(args[0], memb)
+        return lambda obj: lyli.type.Object(getattr(obj, memb), "integer")
     def _set(memb):
-        return lambda *args: setattr(args[0], memb, args[1])
+        return lambda obj,val: setattr(obj, memb, val.val)
     for m in members:
         context.cur_ctx.update({
             name + "::get_" + str(m[2]) : func.PyFunc(_get(str(m[2]))),
@@ -153,9 +153,15 @@ def _scope(arg1, arg2):
 
 def _dot(arg1, arg2):
   arg1_type = context.cur_ctx["LOL::"+ str(arg1)]["type"]
+  fn = None
+  args = []
   if isinstance(arg2, ast.Call):
-    return eval.eval_one(ast.Call([_scope(arg1_type, arg2[0]), arg1] + arg2[1:]))
-  return eval.eval_one(ast.Call([_scope(arg1_type, arg2), arg1]))
+    fn = _scope(arg1_type, arg2[0])
+    args = [arg1] + arg2[1:]
+  else:
+    fn = _scope(arg1_type, arg2)
+    args = [arg1]
+  return fn(*args)
 
 def _block(*args):
   prev_ctx = context.cur_ctx
@@ -177,6 +183,9 @@ prelude_ctx = context.Context({
       func.TypedPyFunc(["float"], _print),
       func.TypedPyFunc(["str"], _print),
       func.TypedPyFunc(["char"], _print),
+      func.TypedPyFunc(["type"], _print),
+      func.TypedPyFunc(["call"], _print),
+      func.TypedPyFunc(["ast.Call"], _print),
     ]),
     
     "int" : func.PyMacro(_let),
@@ -187,7 +196,7 @@ prelude_ctx = context.Context({
     "return" : func.PyMacro(_ret),
     "import" : func.PyMacro(_import),
     "struct" : func.PyMacro(_defstruct),
-    "$" : func.PyFunc(eval.eval_all),
+    "$" : func.PyMacro(eval.eval_all),
     "block" : func.PyMacro(_block),
     "::" : func.PyMacro(_scope),
     "." : func.PyMacro(_dot),
@@ -205,7 +214,7 @@ prelude_ctx = context.Context({
     "!=" : func.BOp(operator.ne),
     "||" : func.BOp(operator.or_),
 
-    "typeof" : func.PyMacro(func.typeof),
+    "typeof" : func.PyFunc(func.typeof),
 
     "true" : lyli.type.Object(True, "bool"),
     "false" : lyli.type.Object(False, "bool"),
@@ -218,10 +227,14 @@ prelude_ctx = context.Context({
     "char" : lyli.type.Object("char", "type"),
     "str" : lyli.type.Object("str", "type"),
 
+    "ast.Call" : lyli.type.Object("ast.Call", "type"),
+    "ast.Symbol" : lyli.type.Object("ast.Symbol", "type"),
+
     "func.Func" : lyli.type.Object("func.Func", "type"),
     "func.PyFunc" : lyli.type.Object("func.PyFunc", "type"),
     "func.BOp" : lyli.type.Object("func.BOp", "type"),
     "func.Macro" : lyli.type.Object("func.Macro", "type"),
     "func.PyMacro" : lyli.type.Object("func.PyMacro", "type"),
+    "func.PolymorphicFunc" : lyli.type.Object("func.PyMacro", "type"),
     
 })

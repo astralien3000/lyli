@@ -4,4 +4,4 @@ class Object:
     self.type = typename
     self.val = val
   def __str__(self):
-    return str(self.val)
+    return str(self.val) + ":" + str(self.type)

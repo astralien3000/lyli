@@ -10,6 +10,7 @@ class Atomic(Expr):
 class Symbol(Atomic):
   def __init__(self, name):
     self.name = name
+    lyli.type.Object.__init__(self, self, "ast.Symbol")
   def escape(c):
     if ord(c) < 128:
       return c
@@ -50,6 +51,7 @@ class Float(Atomic):
 class Call(Expr):
   def __init__(self, items):
     self.items = items
+    lyli.type.Object.__init__(self, self, "ast.Call")
   def __getitem__(self, i):
     return self.items[i]
   def __str__(self):

@@ -4,13 +4,11 @@ import lyli.eval as eval
 import lyli.type
 
 def typeof(arg):
-  if isinstance(arg, ast.Symbol):
-    return context.cur_ctx[context.cur_ctx[str(arg)].type]
-  elif isinstance(arg, ast.Atomic):
-    return context.cur_ctx[arg.type]
-  else:
-    print(arg)
-    raise "ERR"
+  #print(arg)
+  return context.cur_ctx[arg.type]
+
+def args_types(*args):
+  return [typeof(x).val for x in args]
 
 class Func(lyli.type.Object):
   class Return(object):
@@ -24,6 +22,7 @@ class Func(lyli.type.Object):
     self.params_types = params_types
     lyli.type.Object.__init__(self, self, "func.Func")
   def __call__(self, *_args):
+    #print("FUNC : " + str(self) + str(_args))
     args = [eval.eval_one(exp) for exp in _args]
     prev_ctx = context.cur_ctx
     context.cur_ctx =  context.Context(zip(map(lambda x: str(x), self.params), args), self.ctx)
@@ -48,15 +47,20 @@ class BOp(Func):
   def __init__(self, func):
     self.func = func
     lyli.type.Object.__init__(self, self, "func.BOp")
-  def __call__(self, *_args):
-    args = [eval.eval_one(exp) for exp in _args]
-    return self.func(*args)
+  def __call__(self, a, b):
+    aa = eval.eval_one(a)
+    bb = eval.eval_one(b)
+    #print("a = " + str(a))
+    #print("b = " + str(b))
+    #print("aa = " + str(aa))
+    #print("bb = " + str(bb))
+    assert(aa.type == bb.type)
+    ret = self.func(aa.val, bb.val)
+    return lyli.type.Object(ret, aa.type)
 
 class PyFunc(Func):
   def __init__(self, func):
     self.func = func
-    print(func)
-    print(func.__code__.co_argcount)
     lyli.type.Object.__init__(self, self, "func.PyFunc")
   def __call__(self, *_args):
     args = [eval.eval_one(exp) for exp in _args]
@@ -74,11 +78,11 @@ class TypedPyFunc(PyFunc):
     assert(len(self.params_types) == func.__code__.co_argcount)
     lyli.type.Object.__init__(self, self, "func.PyFunc")
   def match(self, *_args):
-    return all([a == b for (a, b) in zip([typeof(x).val for x in _args], self.params_types)])
+    return all([a == b for (a, b) in zip(args_types(*_args), self.params_types)])
   def __call__(self, *_args):
     assert(len(self.params_types) == len(_args))
-    assert(self.match(*_args))
     args = [eval.eval_one(exp) for exp in _args]
+    assert(self.match(*args))
     return self.func(*args)
   def __str__(self):
     ret = "[pyfn "
@@ -102,15 +106,27 @@ class PyMacro(Macro):
     lyli.type.Object.__init__(self, self, "func.PyMacro")
   def __call__(self, *args):
     return self.func(*args)
+  def __str__(self):
+    ret = "[pymacro "
+    ret += str(self.func)
+    ret += "]"
+    return ret
 
 class PolymorphicFunc(Func):
   def __init__(self, funcs):
     self.funcs = funcs
     lyli.type.Object.__init__(self, self, "func.PolymorphicFunc")
-  def __call__(self, *args):
+  def __call__(self, *_args):
+    args = [eval.eval_one(exp) for exp in _args]
     candidates = list(filter(lambda f: f.match(*args), self.funcs))
     if(len(candidates) == 1):
-      return candidates[0](*args)
+      return candidates[0].func(*args)
     else:
-      print([typeof(x).val for x in args])
+      #print(args_types(*args))
       raise "TypeError"
+  def __str__(self):
+    ret = "[polyfn "
+    for f in self.funcs:
+      ret += str(f) + "\n"
+    ret += "]"
+    return ret
