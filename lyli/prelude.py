@@ -168,7 +168,7 @@ def _typeof(arg):
   elif isinstance(arg, ast.Atomic):
     return context.cur_ctx[arg.type]
   else:
-    pass#return context.cur_ctx[eval.eval_one(arg).type]
+    pass
 
 prelude_ctx = context.Context({
     "_" : func.PyMacro(_),
