@@ -34,6 +34,9 @@ operator : PP | MM
          | ASSIGN
          | EVAL
          | SCOPE
+         | COLON
+
+COLON : ":"
 
 SCOPE : "::"
 

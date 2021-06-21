@@ -40,6 +40,26 @@ def _fn(*args):
     else:
         raise Exception("WRONG DEFINE FORM")
 
+def _fn2(symbol):
+  def _fn_args(*args):
+    params = [(x[0] if isinstance(x, ast.Call) else x) for x in args]
+    params_types = [(x[1] if isinstance(x, ast.Call) else None) for x in args]
+    def _fn_args_ret(ret):
+      def _fn_args_ret_expr(expr):
+        #print((str(symbol), [str(p) for p in params], [str(p) for p in params_types], str(ret), str(expr)))
+        context.cur_ctx.update({
+            str(symbol) : func.Func2(ret, params_types, params, expr, context.cur_ctx)
+        })
+        #print(context.cur_ctx)
+      return func.PyMacro(_fn_args_ret_expr)
+    def _fn_args_void():
+      return _fn_args_ret(None)
+    return func.PolymorphicMacro([
+        func.TypedPyMacro(["ast.Symbol"], _fn_args_ret),
+        func.TypedPyMacro([], _fn_args_void),
+    ])
+  return func.PyMacro(_fn_args)
+
 def _macro(*args):
     if isinstance(args[0], ast.Call):
         sym = args[0][0][0]
@@ -72,8 +92,8 @@ def _import(arg):
     return None
 
 def _(*args):
+  #print("_ : " + str(args))
   opexpr = [*args]
-  #print("OP EXPR ? " + str(opexpr))
   for op in ["::",".","*","/","+","-","<","==","="]:
     found = True
     while found:
@@ -132,7 +152,7 @@ def _defstruct(*args):
         "def" : func.PyMacro(_def)
     })
     def _get(memb):
-        return lambda obj: lyli.type.Object(getattr(obj, memb), "integer")
+        return lambda obj: lyli.type.Object(getattr(obj, memb), "int")
     def _set(memb):
         return lambda obj,val: setattr(obj, memb, val.val)
     for m in members:
@@ -179,7 +199,7 @@ prelude_ctx = context.Context({
     
     "print" : func.PolymorphicFunc([
       func.TypedPyFunc(["bool"], _print_bool),
-      func.TypedPyFunc(["integer"], _print),
+      func.TypedPyFunc(["int"], _print),
       func.TypedPyFunc(["float"], _print),
       func.TypedPyFunc(["str"], _print),
       func.TypedPyFunc(["char"], _print),
@@ -221,7 +241,7 @@ prelude_ctx = context.Context({
     "type" : lyli.type.Object("type", "type"),
     "bool" : lyli.type.Object("bool", "type"),
     
-    "integer" : lyli.type.Object("integer", "type"),
+    "int" : lyli.type.Object("int", "type"),
     "float" : lyli.type.Object("float", "type"),
     "char" : lyli.type.Object("char", "type"),
     "str" : lyli.type.Object("str", "type"),
@@ -235,5 +255,7 @@ prelude_ctx = context.Context({
     "func.Macro" : lyli.type.Object("func.Macro", "type"),
     "func.PyMacro" : lyli.type.Object("func.PyMacro", "type"),
     "func.PolymorphicFunc" : lyli.type.Object("func.PyMacro", "type"),
+
+    "FN" : func.TypedPyMacro(["ast.Symbol"], _fn2),
     
 })

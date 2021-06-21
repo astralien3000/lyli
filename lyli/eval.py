@@ -3,7 +3,7 @@ import lyli.context as context
 import lyli.func as func
 
 def eval_one(x):
-  #print("EVAL : " + str(x))
+  #print("eval_one : " + str(x))
   if isinstance(x, ast.Symbol):
     return context.cur_ctx[str(x)]
   elif isinstance(x, ast.Atomic):
