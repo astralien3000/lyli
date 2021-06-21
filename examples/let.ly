@@ -5,11 +5,11 @@ let a = 0;
 //let b : int = 0;
 
 // "call" form
-//LET(c)()(0)
-//LET(d)(int)(0)
+LET(c)()(0);
+LET(d)(int)(0);
 
 // test
 print(a);
 //print(b);
-//print(c);
-//print(d);
+print(c);
+print(d);

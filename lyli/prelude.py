@@ -40,6 +40,19 @@ def _fn(*args):
     else:
         raise Exception("WRONG DEFINE FORM")
 
+def _let2(symbol):
+  def _let_type(T):
+    def _let_type_val(val):
+      #print((str(symbol), str(T), str(val)))
+      context.cur_ctx.update({str(symbol) : val})
+    return func.PyFunc(_let_type_val)
+  def _let_none():
+    return _let_type(None)
+  return func.PolymorphicMacro([
+    func.TypedPyMacro(["ast.Symbol"], _let_type),
+    func.TypedPyMacro([], _let_none),
+  ])
+
 def _fn2(symbol):
   def _fn_args(*args):
     params = [(x[0] if isinstance(x, ast.Call) else x) for x in args]
@@ -52,11 +65,11 @@ def _fn2(symbol):
         })
         #print(context.cur_ctx)
       return func.PyMacro(_fn_args_ret_expr)
-    def _fn_args_void():
+    def _fn_args_none():
       return _fn_args_ret(None)
     return func.PolymorphicMacro([
         func.TypedPyMacro(["ast.Symbol"], _fn_args_ret),
-        func.TypedPyMacro([], _fn_args_void),
+        func.TypedPyMacro([], _fn_args_none),
     ])
   return func.PyMacro(_fn_args)
 
@@ -257,5 +270,6 @@ prelude_ctx = context.Context({
     "func.PolymorphicFunc" : lyli.type.Object("func.PyMacro", "type"),
 
     "FN" : func.TypedPyMacro(["ast.Symbol"], _fn2),
+    "LET" : func.TypedPyMacro(["ast.Symbol"], _let2),
     
 })
