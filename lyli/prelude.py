@@ -188,7 +188,6 @@ prelude_ctx = context.Context({
       func.TypedPyFunc(["ast.Call"], _print),
     ]),
     
-    "int" : func.PyMacro(_let),
     "let" : func.PyMacro(_let),
     "fn" : func.PyMacro(_fn),
     "macro" : func.PyMacro(_macro),

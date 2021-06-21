@@ -1,4 +1,4 @@
-int i = 42;
+let i = 42;
 
 macro mymacro (arg) {
     i = arg;
@@ -12,7 +12,7 @@ print("---------- macro ----------");
 print(i);
 block {
   print(i);
-  int i = 0;
+  let i = 0;
   print(i);
   mymacro(666);
   print(i);
@@ -24,7 +24,7 @@ print("---------- func ----------");
 print(i);
 block {
   print(i);
-  int i = 0;
+  let i = 0;
   print(i);
   myfunc(666);
   print(i);
