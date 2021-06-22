@@ -6,10 +6,11 @@ class Context(dict):
     def search(self, key):
         if key in self:
             return self
-        elif self.parent:
+        elif(self.parent != None):
             return self.parent.search(key)
         else:
             #print(self)
+            #print(self.parent)
             raise Exception("NOT FOUND : " + str(key))
     def __getitem__(self, key):
         ctx = self.search(key)

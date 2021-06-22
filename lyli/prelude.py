@@ -280,10 +280,11 @@ def _dot(arg1, arg2):
 def _block(*args):
   prev_ctx = context.cur_ctx
   context.cur_ctx =  context.Context({}, prev_ctx)
+  ret = None
   for a in args:
-    eval.eval_one(a)
+    ret = eval.eval_one(a)
   context.cur_ctx = prev_ctx
-  return None
+  return ret
 
 def _set(arg1, arg2):
   context.cur_ctx[str(arg1)] = eval.eval_one(arg2)
