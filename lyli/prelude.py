@@ -9,6 +9,9 @@ import operator
 def _print(args):
     print(args.val)
 
+def _print_none(n):
+    print()
+
 def _print_bool(arg):
     if arg:
       print("true")
@@ -92,10 +95,11 @@ def _macro(*args):
     else:
         raise Exception("WRONG DEFINE FORM")
 
-def _if(arg):
-    if arg.val:
-        return func.PyMacro(lambda a: eval.eval_one(a))
-    return func.PyMacro(lambda a: None)
+def _if(cond):
+    if cond.val:
+      return func.PyMacro(lambda a: eval.eval_one(a))
+    else:
+      return func.PyMacro(lambda a: lyli.type.Object(None, "NoneType"))
 
 def _IF(cond):
     def _IF_then(then_exp):
@@ -188,9 +192,21 @@ def _stmt_fn(*args):
   else:
     return _stmt_let(*args)
 
+def _stmt_if(*args):
+  if(isinstance(args[0], ast.Call) and isinstance(args[0][0], ast.Call) and str(args[0][0][0]) == "if"):
+    if(len(args) == 2 and isinstance(args[1], ast.Call) and str(args[1][0]) == "else"):
+      cond = args[0][0][1]
+      then_exp = args[0][1]
+      else_exp = args[1][1]
+      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Symbol("IF"), cond]), then_exp]), else_exp]))
+    else:
+      raise "ERR"
+  else:
+    return _stmt_fn(*args)
+
 def _stmt(*args):
   #print("_ : " + str([str(x) for x in args]))
-  return eval.eval_one(_stmt_fn(*args))
+  return eval.eval_one(_stmt_if(*args))
 
 def _defstruct(*args):
     import ctypes
@@ -304,6 +320,7 @@ prelude_ctx = context.Context({
       func.TypedPyFunc(["call"], _print),
       func.TypedPyFunc(["ast.Symbol"], _print),
       func.TypedPyFunc(["ast.Call"], _print),
+      func.TypedPyFunc(["NoneType"], _print_none),
     ]),
     
     "let" : func.PyMacro(_let),
@@ -343,6 +360,8 @@ prelude_ctx = context.Context({
     "float" : lyli.type.Object("float", "type"),
     "char" : lyli.type.Object("char", "type"),
     "str" : lyli.type.Object("str", "type"),
+
+    "NoneType" : lyli.type.Object("NoneType", "type"),
 
     "ast.Call" : lyli.type.Object("ast.Call", "type"),
     "ast.Symbol" : lyli.type.Object("ast.Symbol", "type"),
