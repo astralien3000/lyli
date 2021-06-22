@@ -272,6 +272,22 @@ def _block(*args):
 def _set(arg1, arg2):
   context.cur_ctx[str(arg1)] = eval.eval_one(arg2)
 
+def _Fn(*args):
+  #print("_Fn : " + str(args))
+  fnargs = "Fn({})".format(",".join([str(x.val) for x in args]))
+  def _Fn_ret(ret):
+    fnargsret = "{}({})".format(fnargs, str(ret.val))
+    #print(fnargsret)
+    return lyli.type.Object(fnargsret, "type")
+  def _Fn_noret():
+    fnargsret = "{}()".format(fnargs)
+    #print(fnargsret)
+    return lyli.type.Object(fnargsret, "type")
+  return func.PolymorphicFunc([
+    func.TypedPyFunc(["type"], _Fn_ret),
+    func.TypedPyFunc([], _Fn_noret),
+  ])
+
 prelude_ctx = context.Context({
     "_" : func.PyMacro(_stmt),
     
@@ -340,5 +356,7 @@ prelude_ctx = context.Context({
     
     "LET" : func.TypedPyMacro(["ast.Symbol"], _LET),
     "IF" : func.PyFunc(_IF),
+    
+    "Fn" : func.PyFunc(_Fn),
 
 })
