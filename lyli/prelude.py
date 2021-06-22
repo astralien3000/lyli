@@ -61,9 +61,10 @@ def _FN(symbol):
     params = [(x[0] if isinstance(x, ast.Call) else x) for x in args]
     params_types = [(x[1] if isinstance(x, ast.Call) else None) for x in args]
     def _fn_args_ret(ret):
-      def _fn_args_ret_expr(expr):
-        #print((str(symbol), [str(p) for p in params], [str(p) for p in params_types], str(ret), str(expr)))
-        f = func.Func2(ret, params_types, params, expr, context.cur_ctx)
+      def _fn_args_ret_expr(*exprs):
+        exp = ast.Call([ast.Symbol("block"), *exprs])
+        #print((str(symbol), [str(p) for p in params], [str(p) for p in params_types], str(ret), str(exp)))
+        f = func.Func2(ret, params_types, params, exp, context.cur_ctx)
         context.cur_ctx.update({
             str(symbol) : f
         })
@@ -173,22 +174,22 @@ def _stmt_fn(*args):
     if(len(args) == 2):
       symbol = args[1][0][0]
       params = [ast.Call([x[1], x[3]]) if isinstance(x, ast.Call) else x for x in args[1][0][1:]]
-      exp = args[1][1]
-      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN"), symbol])] + params)]), exp]))
+      exp = args[1][1:]
+      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN"), symbol])] + params)]), *exp]))
     elif(len(args) == 4 and str(args[2]) == "->"):
       symbol = args[1][0]
       params = [ast.Call([x[1], x[3]]) if isinstance(x, ast.Call) else x for x in args[1][1:]]
       ret = args[3][0]
-      exp = args[3][1]
-      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN"), symbol])] + params), ret]), exp]))
+      exp = args[3][1:]
+      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN"), symbol])] + params), ret]), *exp]))
     else:
       raise "ERR"
   elif(len(args) >= 2 and str(args[1]) == "->" and isinstance(args[0], ast.Call) and str(args[0][0]) == "fn"):
     #print(str([str(x) for x in args]))
     params = [ast.Call([x[1], x[3]]) if isinstance(x, ast.Call) else x for x in args[0][1:]]
     ret = args[2][0]
-    exp = args[2][1]
-    return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN")])] + params), ret]), exp]))
+    exp = args[2][1:]
+    return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN")])] + params), ret]), *exp]))
   else:
     return _stmt_let(*args)
 

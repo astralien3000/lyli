@@ -1,19 +1,21 @@
 
 fn miew(a : int) -> int {
-    a * 10 + 42 * 10
+  print(5);
+  print(a);
+  a * 10 + 42 * 10
 };
 
 fn loöl(a : int) -> int {
-    miew(a)
+  miew(a)
 };
 
 print(loöl(10));
 print(loöl(42));
 
 struct Test {
-    int a;
-    int b;
-    int c;
+  int a;
+  int b;
+  int c;
 };
 
 Test test;
