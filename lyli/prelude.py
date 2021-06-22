@@ -34,28 +34,10 @@ def _typed_let(symbol, colon, type, eq, value):
   context.cur_ctx.update({str(symbol) : value})
 
 def _fn(*args):
-    if len(args) == 2 and isinstance(args[-1], ast.Call):
-        params = list(map(lambda x: x[2], args[-1][0][1:]))
-        params_types = list(map(lambda x: x[1], args[-1][0][1:]))
-        context.cur_ctx.update({
-            str(args[-1][0][0]) : func.Func(args[-2], params_types, params, args[-1][1:], context.cur_ctx)
-        })
-    elif len(args) == 1 and isinstance(args[-1], ast.Call):
-        params = list(map(lambda x: x[2], args[-1][0][1:]))
-        params_types = list(map(lambda x: x[1], args[-1][0][1:]))
-        context.cur_ctx.update({
-            str(args[-1][0][0]) : func.Func(None, params_types, params, args[-1][1:], context.cur_ctx)
-        })
-    else:
-        raise Exception("WRONG DEFINE FORM")
-
-def _fn2(*args):
-  params = [(x[1] if isinstance(x, ast.Call) else x) for x in args]
-  params_types = [(x[3] if isinstance(x, ast.Call) else None) for x in args]
-  def _fn_args_expr(expr):
-    #print(([str(p) for p in params], [str(p) for p in params_types], str(expr)))
-    f = func.Func2(None, params_types, params, expr, context.cur_ctx)
-    return f
+  params = [ast.Call([x[1], x[3]]) if isinstance(x, ast.Call) else x for x in args]
+  def _fn_args_expr(exp):
+    #print(([str(p) for p in params], str(exp)))
+    return eval.eval_one(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN")])] + params)]), exp]))
   return func.PyMacro(_fn_args_expr)
 
 def _LET(symbol):
@@ -305,7 +287,7 @@ prelude_ctx = context.Context({
     ]),
     
     "let" : func.PyMacro(_let),
-    "fn" : func.PyMacro(_fn2),
+    "fn" : func.PyMacro(_fn),
     "macro" : func.PyMacro(_macro),
     "if" : func.PyFunc(_if),
     "return" : func.PyMacro(_ret),
