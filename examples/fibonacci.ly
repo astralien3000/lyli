@@ -1,9 +1,6 @@
 
-fn int fib(int n) {
-    if(n < 2) {
-        return n;
-    };
-    return fib(n-1) + fib(n-2);
+fn fib(n : int) -> int {
+    IF(n < 2)(n)(fib(n-1) + fib(n-2))
 };
 
 print(fib(20));

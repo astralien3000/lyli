@@ -1,12 +1,10 @@
 
-fn int miew(int a) {
-    print(5);
-    print(a);
-    return a * 10 + 42 * 10;
+fn miew(a : int) -> int {
+    a * 10 + 42 * 10
 };
 
-fn int loöl(int a) {
-    return miew(a);
+fn loöl(a : int) -> int {
+    miew(a)
 };
 
 print(loöl(10));

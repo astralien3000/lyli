@@ -73,8 +73,9 @@ class Func2(Func):
     return ret
 
 class BOp(Func):
-  def __init__(self, func):
+  def __init__(self, func, ret = None):
     self.func = func
+    self.ret = ret
     lyli.type.Object.__init__(self, self, "func.BOp")
   def match(self, *args):
     return True
@@ -87,7 +88,7 @@ class BOp(Func):
     #print("bb = " + str(bb))
     assert(aa.type == bb.type)
     ret = self.func(aa.val, bb.val)
-    return lyli.type.Object(ret, aa.type)
+    return lyli.type.Object(ret, self.ret if self.ret else aa.type)
 
 class PyFunc(Func):
   def __init__(self, func):
@@ -111,7 +112,7 @@ class TypedPyFunc(PyFunc):
     assert(len(self.params_types) == func.__code__.co_argcount)
     lyli.type.Object.__init__(self, self, "func.PyFunc")
   def match(self, *_args):
-    #print("TypedPyFunc.match : " + str(_args))
+    #print("TypedPyFunc.match : " + str(self) + ";" + str(_args))
     return (len(self.params_types) == len(_args)) and all([a == b for (a, b) in zip(args_types(*_args), self.params_types)])
   def __call__(self, *_args):
     assert(len(self.params_types) == len(_args))
@@ -198,6 +199,7 @@ class PolymorphicMacro(Macro):
       return candidates[0].func(*args)
     else:
       print(args_types(*args))
+      print([str(x) for x in args])
       print(candidates)
       raise "TypeError"
   def __str__(self):

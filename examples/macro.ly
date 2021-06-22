@@ -4,7 +4,7 @@ macro mymacro (arg) {
     i = arg;
 };
 
-fn void myfunc (int arg) {
+fn myfunc (arg : int) {
     i = arg;
 };
 

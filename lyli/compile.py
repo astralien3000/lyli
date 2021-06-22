@@ -68,8 +68,7 @@ def gen_func(name, fn):
       code += p.type + " " + p
   code += ")"
   code += "{"
-  for e in fn.exp:
-    code += gen_expr(e)
+  code += gen_expr(fn.exp)
   code += "}"
   return code
 

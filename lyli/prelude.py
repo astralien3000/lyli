@@ -24,6 +24,15 @@ def _let(*args):
         raise Exception("WRONG DEFINE FORM")
     return None
 
+def _std_let(symbol, eq, value):
+  assert(str(eq) == "=")
+  context.cur_ctx.update({str(symbol) : value})
+
+def _typed_let(symbol, colon, type, eq, value):
+  assert(str(eq) == "=")
+  assert(str(colon) == ":")
+  context.cur_ctx.update({str(symbol) : value})
+
 def _fn(*args):
     if len(args) == 2 and isinstance(args[-1], ast.Call):
         params = list(map(lambda x: x[2], args[-1][0][1:]))
@@ -40,7 +49,16 @@ def _fn(*args):
     else:
         raise Exception("WRONG DEFINE FORM")
 
-def _let2(symbol):
+def _fn2(*args):
+  params = [(x[1] if isinstance(x, ast.Call) else x) for x in args]
+  params_types = [(x[3] if isinstance(x, ast.Call) else None) for x in args]
+  def _fn_args_expr(expr):
+    #print(([str(p) for p in params], [str(p) for p in params_types], str(expr)))
+    f = func.Func2(None, params_types, params, expr, context.cur_ctx)
+    return f
+  return func.PyMacro(_fn_args_expr)
+
+def _LET(symbol):
   def _let_type(T):
     def _let_type_val(val):
       #print((str(symbol), str(T), str(val)))
@@ -53,17 +71,19 @@ def _let2(symbol):
     func.TypedPyMacro([], _let_none),
   ])
 
-def _fn2(symbol):
+def _FN(symbol):
   def _fn_args(*args):
     params = [(x[0] if isinstance(x, ast.Call) else x) for x in args]
     params_types = [(x[1] if isinstance(x, ast.Call) else None) for x in args]
     def _fn_args_ret(ret):
       def _fn_args_ret_expr(expr):
         #print((str(symbol), [str(p) for p in params], [str(p) for p in params_types], str(ret), str(expr)))
+        f = func.Func2(ret, params_types, params, expr, context.cur_ctx)
         context.cur_ctx.update({
-            str(symbol) : func.Func2(ret, params_types, params, expr, context.cur_ctx)
+            str(symbol) : f
         })
         #print(context.cur_ctx)
+        return f
       return func.PyMacro(_fn_args_ret_expr)
     def _fn_args_none():
       return _fn_args_ret(None)
@@ -72,6 +92,9 @@ def _fn2(symbol):
         func.TypedPyMacro([], _fn_args_none),
     ])
   return func.PyMacro(_fn_args)
+
+def _FN_anon():
+  return _FN(None)
 
 def _macro(*args):
     if isinstance(args[0], ast.Call):
@@ -92,22 +115,24 @@ def _if(arg):
         return func.PyMacro(lambda a: eval.eval_one(a))
     return func.PyMacro(lambda a: None)
 
+def _IF(cond):
+    def _IF_then(then_exp):
+      def _IF_then_else(else_exp):
+        #print((str(cond), str(then_exp), str(else_exp)))
+        return eval.eval_one(then_exp if cond.val else else_exp)
+      return func.PyMacro(_IF_then_else)
+    return func.PyMacro(_IF_then)
+
 def _ret(*args):
     if len(args) == 1:
         return func.Func.Return(eval.eval_one(args[0]))
     else:
         return func.Func.Return(eval.eval_one(ast.Call([ast.Symbol("_"), *args])))
 
-def _import(arg):
-    import importlib
-    mod = importlib.import_module(str(arg))
-    context.cur_ctx.update(vars(mod))
-    return None
-
 def _(*args):
-  #print("_ : " + str(args))
+  print("_ : " + str(args))
   opexpr = [*args]
-  for op in ["::",".","*","/","+","-","<","==","="]:
+  for op in ["::",".","*","/","+","-","<","==","=",":"]:
     found = True
     while found:
       found = False
@@ -121,11 +146,69 @@ def _(*args):
         if str(opexpr[i]) == op:
           opexpr = before + [ast.Call([opexpr[i], opexpr[i-1], opexpr[i+1]])] + after
           found = True
-          #print(opexpr)
+          print(opexpr)
           break
   if(callable(eval.eval_one(opexpr[0]))):
     return eval.eval_one(ast.Call(opexpr))
   return eval.eval_one(opexpr[0])
+
+def _stmt_simple(*args):
+  if(len(args) == 1):
+    #print("_stmt_simple LEN1 : " + str([*args][0]))
+    return [*args][0]
+  if(len(args) == 2):
+    #print("_stmt_simple LEN2 : " + str([str(x) for x in args]))
+    return ast.Call([*args])
+  else:
+    print("_stmt_simple ERR : " + str([str(x) for x in args]))
+    raise "ERR"
+
+def _stmt_op(*args):
+  ops = ["::",".","*","/","+","-","<","==","=",":"]
+  if(len(args) >= 3 and str(args[1]) in ops):
+    return _stmt_op(ast.Call([args[1], args[0], args[2]]), *args[3:])
+  else:
+    return _stmt_simple(*args)
+
+def _stmt_let(*args):
+  if(str(args[0]) == "let"):
+    if(str(args[2]) == "="):
+      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Symbol("LET"), args[1]])]), ast.Call([ast.Symbol("_"), *args[3:]])]))
+    elif(str(args[2]) == ":"):
+      assert(str(args[4]) == "=")
+      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Symbol("LET"), args[1]]), args[3]]), ast.Call([ast.Symbol("_"), *args[5:]])]))
+    else:
+      raise "ERR"
+  else:
+    return _stmt_op(*args)
+
+def _stmt_fn(*args):
+  if(str(args[0]) == "fn"):
+    if(len(args) == 2):
+      symbol = args[1][0][0]
+      params = [ast.Call([x[1], x[3]]) if isinstance(x, ast.Call) else x for x in args[1][0][1:]]
+      exp = args[1][1]
+      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN"), symbol])] + params)]), exp]))
+    elif(len(args) == 4 and str(args[2]) == "->"):
+      symbol = args[1][0]
+      params = [ast.Call([x[1], x[3]]) if isinstance(x, ast.Call) else x for x in args[1][1:]]
+      ret = args[3][0]
+      exp = args[3][1]
+      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN"), symbol])] + params), ret]), exp]))
+    else:
+      raise "ERR"
+  elif(len(args) >= 2 and str(args[1]) == "->" and isinstance(args[0], ast.Call) and str(args[0][0]) == "fn"):
+    #print(str([str(x) for x in args]))
+    params = [ast.Call([x[1], x[3]]) if isinstance(x, ast.Call) else x for x in args[0][1:]]
+    ret = args[2][0]
+    exp = args[2][1]
+    return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Call([ast.Symbol("FN")])] + params), ret]), exp]))
+  else:
+    return _stmt_let(*args)
+
+def _stmt(*args):
+  #print("_ : " + str([str(x) for x in args]))
+  return eval.eval_one(_stmt_fn(*args))
 
 def _defstruct(*args):
     import ctypes
@@ -208,7 +291,7 @@ def _set(arg1, arg2):
   context.cur_ctx[str(arg1)] = eval.eval_one(arg2)
 
 prelude_ctx = context.Context({
-    "_" : func.PyMacro(_),
+    "_" : func.PyMacro(_stmt),
     
     "print" : func.PolymorphicFunc([
       func.TypedPyFunc(["bool"], _print_bool),
@@ -222,11 +305,10 @@ prelude_ctx = context.Context({
     ]),
     
     "let" : func.PyMacro(_let),
-    "fn" : func.PyMacro(_fn),
+    "fn" : func.PyMacro(_fn2),
     "macro" : func.PyMacro(_macro),
     "if" : func.PyFunc(_if),
     "return" : func.PyMacro(_ret),
-    "import" : func.PyMacro(_import),
     "struct" : func.PyMacro(_defstruct),
     "$" : func.PyMacro(eval.eval_all),
     "block" : func.PyMacro(_block),
@@ -238,12 +320,12 @@ prelude_ctx = context.Context({
     "*" : func.BOp(operator.mul),
     "!" : func.BOp(operator.not_),
     "~" : func.BOp(operator.inv),
-    "<" : func.BOp(operator.lt),
-    ">" : func.BOp(operator.gt),
-    "<=" : func.BOp(operator.le),
-    ">=" : func.BOp(operator.ge),
-    "==" : func.BOp(operator.eq),
-    "!=" : func.BOp(operator.ne),
+    "<" : func.BOp(operator.lt, "bool"),
+    ">" : func.BOp(operator.gt, "bool"),
+    "<=" : func.BOp(operator.le, "bool"),
+    ">=" : func.BOp(operator.ge, "bool"),
+    "==" : func.BOp(operator.eq, "bool"),
+    "!=" : func.BOp(operator.ne, "bool"),
     "||" : func.BOp(operator.or_),
 
     "typeof" : func.PyFunc(func.typeof),
@@ -269,7 +351,12 @@ prelude_ctx = context.Context({
     "func.PyMacro" : lyli.type.Object("func.PyMacro", "type"),
     "func.PolymorphicFunc" : lyli.type.Object("func.PyMacro", "type"),
 
-    "FN" : func.TypedPyMacro(["ast.Symbol"], _fn2),
-    "LET" : func.TypedPyMacro(["ast.Symbol"], _let2),
+    "FN" : func.PolymorphicMacro([
+      func.TypedPyMacro(["ast.Symbol"], _FN),
+      func.TypedPyMacro([], _FN_anon),
+    ]),
     
+    "LET" : func.TypedPyMacro(["ast.Symbol"], _LET),
+    "IF" : func.PyFunc(_IF),
+
 })

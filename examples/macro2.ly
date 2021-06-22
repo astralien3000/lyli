@@ -3,7 +3,7 @@ macro mymacro (arg) {
     print(arg);
 };
 
-fn void myfunc (int arg) {
+fn myfunc (arg : int) {
     print(arg);
 };
 
