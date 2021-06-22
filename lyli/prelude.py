@@ -288,6 +288,9 @@ def _Fn(*args):
     func.TypedPyFunc([], _Fn_noret),
   ])
 
+def _quote(arg):
+  return arg
+
 prelude_ctx = context.Context({
     "_" : func.PyMacro(_stmt),
     
@@ -299,12 +302,14 @@ prelude_ctx = context.Context({
       func.TypedPyFunc(["char"], _print),
       func.TypedPyFunc(["type"], _print),
       func.TypedPyFunc(["call"], _print),
+      func.TypedPyFunc(["ast.Symbol"], _print),
       func.TypedPyFunc(["ast.Call"], _print),
     ]),
     
     "let" : func.PyMacro(_let),
     "fn" : func.PyMacro(_fn),
     "macro" : func.PyMacro(_macro),
+    "quote" : func.PyMacro(_quote),
     "if" : func.PyFunc(_if),
     "return" : func.PyMacro(_ret),
     "struct" : func.PyMacro(_defstruct),
