@@ -103,8 +103,10 @@ def _if(cond):
       return func.PyMacro(lambda a: lyli.type.Object(None, "NoneType"))
 
 def _IF(cond):
-    def _IF_then(then_exp):
-      def _IF_then_else(else_exp):
+    def _IF_then(*then_exprs):
+      def _IF_then_else(*else_exprs):
+        then_exp = ast.Call([ast.Symbol("block"), *then_exprs]) 
+        else_exp = ast.Call([ast.Symbol("block"), *else_exprs]) 
         #print((str(cond), str(then_exp), str(else_exp)))
         return eval.eval_one(then_exp if cond.val else else_exp)
       return func.PyMacro(_IF_then_else)
@@ -197,9 +199,9 @@ def _stmt_if(*args):
   if(isinstance(args[0], ast.Call) and isinstance(args[0][0], ast.Call) and str(args[0][0][0]) == "if"):
     if(len(args) == 2 and isinstance(args[1], ast.Call) and str(args[1][0]) == "else"):
       cond = args[0][0][1]
-      then_exp = args[0][1]
-      else_exp = args[1][1]
-      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Symbol("IF"), cond]), then_exp]), else_exp]))
+      then_exp = args[0][1:]
+      else_exp = args[1][1:]
+      return _stmt_simple(ast.Call([ast.Call([ast.Call([ast.Symbol("IF"), cond]), *then_exp]), *else_exp]))
     else:
       raise "ERR"
   else:

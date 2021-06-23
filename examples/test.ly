@@ -6,7 +6,13 @@ fn miew(a : int) -> int {
 };
 
 fn loöl(a : int) -> int {
-  miew(a)
+  if(a < 20) {
+    print("UNDER 20 !");
+    a
+  }
+  else {
+    miew(a)
+  }
 };
 
 print(loöl(10));
