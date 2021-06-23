@@ -5,7 +5,10 @@ import lyli.type
 
 def typeof(arg):
   #print("typeof : " + str(arg))
-  return context.cur_ctx[arg.type]
+  if isinstance(arg.type, lyli.type.Object):
+    return arg.type
+  else:
+    return context.cur_ctx[arg.type]
 
 def args_types(*args):
   #print("args_types : " + str(args))
@@ -180,7 +183,7 @@ class PolymorphicFunc(Func):
     if(len(candidates) == 1):
       return candidates[0].func(*args)
     else:
-      #print(args_types(*args))
+      print(args_types(*args))
       raise "TypeError"
   def __str__(self):
     ret = "[polyfn "

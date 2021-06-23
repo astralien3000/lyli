@@ -6,8 +6,11 @@ import lyli.type
 
 import operator
 
-def _print(args):
-    print(args.val)
+def _print(arg):
+    print(arg.val)
+
+def _print_pair(pair):
+    print("pair({},{})".format(str(pair.val[0]), str(pair.val[1])))
 
 def _print_none(n):
     print()
@@ -311,6 +314,19 @@ def _Fn(*args):
 def _quote(arg):
   return arg
 
+def _Pair(lt, rt):
+  ret = "Pair({},{})".format(lt,rt)
+  return lyli.type.Object(ret, "type")
+
+def _pair(l, r):
+  return lyli.type.Object((l,r), _Pair(l.type, r.type))
+
+def _left(p):
+  return p.val[0]
+
+def _right(p):
+  return p.val[1]
+
 prelude_ctx = context.Context({
     "_" : func.PyMacro(_stmt),
     
@@ -325,6 +341,7 @@ prelude_ctx = context.Context({
       func.TypedPyFunc(["ast.Symbol"], _print),
       func.TypedPyFunc(["ast.Call"], _print),
       func.TypedPyFunc(["NoneType"], _print_none),
+      func.TypedPyFunc(["Pair(ast.Symbol,ast.Symbol)"], _print_pair),
     ]),
     
     "let" : func.PyMacro(_let),
@@ -386,5 +403,10 @@ prelude_ctx = context.Context({
     "IF" : func.PyFunc(_IF),
     
     "Fn" : func.PyFunc(_Fn),
+
+    "Pair" : func.PyFunc(_Pair),
+    "pair" : func.PyFunc(_pair),
+    "left" : func.PyFunc(_left),
+    "right" : func.PyFunc(_right),
 
 })
