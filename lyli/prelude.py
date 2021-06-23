@@ -5,12 +5,20 @@ import lyli.eval as eval
 import lyli.type
 
 import operator
+import re
 
 def _print(arg):
     print(arg.val)
 
+def _str_pair(p):
+  #print(str(p.type))
+  if _is_pair(p.type):
+    return "pair({},{})".format(_str_pair(p.val[0]), _str_pair(p.val[1]))
+  else:
+    return p.val
+
 def _print_pair(pair):
-    print("pair({},{})".format(str(pair.val[0]), str(pair.val[1])))
+    print(_str_pair(pair))
 
 def _print_none(n):
     print()
@@ -327,6 +335,13 @@ def _left(p):
 def _right(p):
   return p.val[1]
 
+def _is_pair(s):
+  #print("_is_pair : " + str(s))
+  if isinstance(s, lyli.type.Object):
+    return re.fullmatch("Pair\(.+,.+\)", s.val)
+  else:
+    return re.fullmatch("Pair\(.+,.+\)", s)
+
 prelude_ctx = context.Context({
     "_" : func.PyMacro(_stmt),
     
@@ -341,7 +356,7 @@ prelude_ctx = context.Context({
       func.TypedPyFunc(["ast.Symbol"], _print),
       func.TypedPyFunc(["ast.Call"], _print),
       func.TypedPyFunc(["NoneType"], _print_none),
-      func.TypedPyFunc(["Pair(ast.Symbol,ast.Symbol)"], _print_pair),
+      func.TypedPyFunc([_is_pair], _print_pair),
     ]),
     
     "let" : func.PyMacro(_let),
@@ -404,7 +419,7 @@ prelude_ctx = context.Context({
     
     "Fn" : func.PyFunc(_Fn),
 
-    "Pair" : func.PyFunc(_Pair),
+    "Pair" : func.TypedPyFunc(["type", "type"], _Pair),
     "pair" : func.PyFunc(_pair),
     "left" : func.PyFunc(_left),
     "right" : func.PyFunc(_right),

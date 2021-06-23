@@ -12,7 +12,18 @@ def typeof(arg):
 
 def args_types(*args):
   #print("args_types : " + str(args))
-  return [typeof(x).val for x in args]
+  return [typeof(x) for x in args]
+
+def match_types(a, b):
+  #print("match_types : " + str((str(a),str(b))))
+  if isinstance(a, lyli.type.Object):
+    return match_types(a.val, b)
+  elif isinstance(b, lyli.type.Object):
+    return match_types(a, b.val)
+  elif callable(b):
+    return b(a)
+  else:
+    return a == b
 
 class Func(lyli.type.Object):
   class Return(object):
@@ -116,7 +127,8 @@ class TypedPyFunc(PyFunc):
     lyli.type.Object.__init__(self, self, "func.PyFunc")
   def match(self, *_args):
     #print("TypedPyFunc.match : " + str(self) + ";" + str(_args))
-    return (len(self.params_types) == len(_args)) and all([a == b for (a, b) in zip(args_types(*_args), self.params_types)])
+    same_arity = (len(self.params_types) == len(_args))
+    return same_arity and all([match_types(a,b) for (a, b) in zip(args_types(*_args), self.params_types)])
   def __call__(self, *_args):
     assert(len(self.params_types) == len(_args))
     args = [eval.eval_one(exp) for exp in _args]
@@ -161,7 +173,8 @@ class TypedPyMacro(Macro):
     assert(len(self.params_types) == func.__code__.co_argcount)
     lyli.type.Object.__init__(self, self, "func.PyMacro")
   def match(self, *_args):
-    return (len(self.params_types) == len(_args)) and all([a == b for (a, b) in zip(args_types(*_args), self.params_types)])
+    same_arity = (len(self.params_types) == len(_args))
+    return same_arity and all([match_types(a,b) for (a, b) in zip(args_types(*_args), self.params_types)])
   def __call__(self, *args):
     assert(self.match(*args))
     return self.func(*args)
