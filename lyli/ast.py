@@ -1,4 +1,3 @@
-import lyli.literal
 import lyli.type
 
 class Expr(lyli.type.Object):
@@ -33,9 +32,30 @@ class Char(Atomic):
     return self.val
 
 class Integer(Atomic):
+  def split_int(str):
+    prefix = None
+    body = str
+    if str[:2] in ["0b","0o","0d","0x"]:
+      prefix = str[:2]
+      body = str[2:]
+    return (prefix, body)
+  def get_int_base(str):
+    prefix = Integer.split_int(str)[0]
+    convert = {
+      None : 10,
+      "0b" : 2,
+      "0o" : 8,
+      "0d" : 10,
+      "0x" : 16,
+    }
+    return convert[prefix]
+  def get_int(str):
+    base = Integer.get_int_base(str)
+    body = Integer.split_int(str)[1]
+    return int(body, base)
   def __init__(self, val):
     self.str = val
-    self.int = lyli.literal.get_int(val)
+    self.int = Integer.get_int(val)
     lyli.type.Object.__init__(self, self.int, "int")
   def __str__(self):
     return str(self.val)
