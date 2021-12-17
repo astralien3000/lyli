@@ -1,3 +1,3 @@
 fn main() {
-  print("Hello, world!")
+  old_print("Hello, world!")
 }

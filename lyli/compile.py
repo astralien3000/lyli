@@ -5,6 +5,7 @@ import lyli.ast as ast
 import lyli.context as context
 import lyli.func as func
 import lyli.eval as eval
+import lyli.prelude as prelude
 
 def get_cache_dir():
   ret = os.path.join(".", "__lycache__")
@@ -31,46 +32,39 @@ def compile_main(fn):
   subprocess.run(["gcc", o_path, "-o", "main"] + get_python_ldflags())
   
 def gen_main(fn):
-  code  = """
-#include <Python.h>
+  return f"""
+    #include <Python.h>
 
-PyObject * preludeName = NULL;
+    PyObject * preludeName = NULL;
 
-PyObject * preludeModule = NULL;
+    PyObject * preludeModule = NULL;
 
-PyObject * _printFunc = NULL;
+    PyObject * _old_printFunc = NULL;
 
-"""
-  code += gen_func("lyli_main", fn)
-  code += """
+    {gen_func("lyli_main", fn)}
 
-int main() {
-  Py_Initialize();
-  preludeName = PyUnicode_DecodeFSDefault("lyli.prelude");
-  preludeModule = PyImport_Import(preludeName);
-  _printFunc = PyObject_GetAttrString(preludeModule, "_print");
-  lyli_main();
-  return 0;
-}
-"""
-  return code
+    int main() {{
+      Py_Initialize();
+      preludeName = PyUnicode_DecodeFSDefault("lyli.prelude");
+      preludeModule = PyImport_Import(preludeName);
+      _old_printFunc = PyObject_GetAttrString(preludeModule, "_old_print");
+      lyli_main();
+      return 0;
+    }}
+  """
 
 def gen_func(name, fn):
-  code = ""
-  if fn.restype:
-    code += str(fn.restype)
-  else:
-    code += "void"
-  code += " "
-  code += str(name)
-  code += "("
-  for p in fn.params:
-      code += p.type + " " + p
-  code += ")"
-  code += "{"
-  code += gen_expr(fn.exp)
-  code += "}"
-  return code
+  return f"""
+    {str(fn.restype) if fn.restype else "void"}
+    {str(name)}
+    ({", ".join([
+      f"{p.type} {p}"
+      for p in fn.params
+    ])})
+    {{
+    {gen_expr(fn.exp)}
+    }}
+  """
 
 def gen_expr(x):
   if isinstance(x, ast.Symbol):
@@ -86,10 +80,20 @@ def gen_expr(x):
 
 def gen_call(x):
   fn = eval.eval_one(x[0])
-  if isinstance(fn, func.PyFunc):
+  if isinstance(fn, func.PyMacro):
+    return gen_pymacro_call(fn, x[1:])
+  elif isinstance(fn, func.PyFunc):
     return gen_pyfunc_call(fn, x[1:])
   else:
     return "/*not supported*/"
+
+def gen_pymacro_call(f, args):
+  if f == prelude.prelude_ctx["block"]:
+    ret = ""
+    for arg in args:
+      ret += gen_call(arg)
+    return ret
+  return "/*not supported*/"
 
 def gen_pyfunc_call(f, args):
   print(f)
@@ -107,16 +111,18 @@ def gen_pyfunc_call(f, args):
       print("Not implemented : " + str(a))
       return "/*Not implemented*/"
   args_str += ")"
-  ret  = '{'
-  ret += 'PyGILState_STATE gstate;'
-  ret += 'gstate = PyGILState_Ensure();'
-  ret += 'PyObject* arglist = 0;'
-  ret += 'PyObject* result = 0;'
-  ret += 'arglist = Py_BuildValue("'+args_str+'", '+','.join(args_vals)+');'
-  ret += 'result = PyEval_CallObject('+f.func.__name__+'Func, arglist);'
-  ret += 'Py_DECREF(arglist);'
-  ret += 'Py_DECREF(result);'
-  ret += 'PyGILState_Release(gstate);'
-  ret += '}'
+  return f'''
+    {{
+      PyGILState_STATE gstate;
+      gstate = PyGILState_Ensure();
+      PyObject* arglist = 0;
+      PyObject* result = 0;
+      arglist = Py_BuildValue("{args_str}", {','.join(args_vals)});
+      result = PyObject_CallObject({f.func.__name__}Func, arglist);
+      Py_DECREF(arglist);
+      Py_DECREF(result);
+      PyGILState_Release(gstate);
+    }}
+  '''
   return ret
   

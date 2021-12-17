@@ -10,6 +10,9 @@ import re
 def _print(arg):
     print(arg.val)
 
+def _old_print(arg):
+    print(arg)
+
 def _str_pair(p):
   #print(str(p.type))
   if _is_pair(p.type):
@@ -358,6 +361,7 @@ prelude_ctx = context.Context({
       func.TypedPyFunc(["NoneType"], _print_none),
       func.TypedPyFunc([_is_pair], _print_pair),
     ]),
+    "old_print" : func.PyFunc(_old_print),
     
     "let" : func.PyMacro(_let),
     "fn" : func.PyMacro(_fn),
