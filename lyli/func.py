@@ -40,7 +40,10 @@ class Func(lyli.object.Object):
     #print("FUNC : " + str(self) + str(_args))
     args = [eval.eval_one(exp) for exp in _args]
     prev_ctx = context.cur_ctx
-    context.cur_ctx =  context.Context(zip(map(lambda x: str(x), self.params), args), self.func_ctx)
+    context.cur_ctx =  context.Context({
+      k: v
+      for k, v in zip(map(lambda x: str(x), self.params), args)
+    }, self.func_ctx)
     ret = None
     for e in self.exp:
       tmp = eval.eval_one(e)
@@ -73,7 +76,10 @@ class Func2(Func):
     #print("FUNC : " + str(self) + str(_args))
     args = [eval.eval_one(exp) for exp in _args]
     prev_ctx = context.cur_ctx
-    context.cur_ctx =  context.Context(zip(map(lambda x: str(x), self.params), args), self.func_ctx)
+    context.cur_ctx =  context.Context({
+      k: v
+      for k, v in zip(map(lambda x: str(x), self.params), args)
+    }, self.func_ctx)
     ret = eval.eval_one(self.exp)
     context.cur_ctx = prev_ctx
     return ret
@@ -148,7 +154,10 @@ class Macro(Func):
   def match(self, *args):
     return True
   def __call__(self, *args):
-    context.cur_ctx.update(zip(map(lambda x: str(x), self.params), args))
+    context.cur_ctx.update({
+      k: v
+      for k, v in zip(map(lambda x: str(x), self.params), args)
+    })
     ret = eval.eval_one(self.exp)
     return ret
     
@@ -174,7 +183,11 @@ class TypedPyMacro(Macro):
     lyli.object.Object.__init__(self, self, "func.PyMacro")
   def match(self, *_args):
     same_arity = (len(self.params_types) == len(_args))
-    return same_arity and all([match_types(a,b) for (a, b) in zip(args_types(*_args), self.params_types)])
+    match_list = [
+      match_types(a,b)
+      for (a, b) in zip(args_types(*_args), self.params_types)
+    ]
+    return same_arity and all(match_list)
   def __call__(self, *args):
     assert(self.match(*args))
     return self.func(*args)

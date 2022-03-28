@@ -27,7 +27,7 @@ def main(argv=sys.argv[1:]):
       print(expr)
       print("---------------- ast END ----------------")
       res = eval.eval_one(expr)
-      if context.cur_ctx.exists("main"):
+      if "main" in context.cur_ctx:
         print("main found ! compile...")
         compile.compile_main(context.cur_ctx["main"])
 

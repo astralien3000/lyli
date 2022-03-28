@@ -403,15 +403,27 @@ prelude_ctx = context.Context({
 
     "NoneType" : lyli.object.Object("NoneType", "type"),
 
-    "ast.Call" : lyli.object.Object("ast.Call", "type"),
-    "ast.Symbol" : lyli.object.Object("ast.Symbol", "type"),
+    "ast": lyli.object.Object(
+      "ast",
+      "module",
+      context.Context({
+        "Call": lyli.object.Object("ast.Call", "type"),
+        "Symbol": lyli.object.Object("ast.Symbol", "type"),
+      }),
+    ),
 
-    "func.Func" : lyli.object.Object("func.Func", "type"),
-    "func.PyFunc" : lyli.object.Object("func.PyFunc", "type"),
-    "func.BOp" : lyli.object.Object("func.BOp", "type"),
-    "func.Macro" : lyli.object.Object("func.Macro", "type"),
-    "func.PyMacro" : lyli.object.Object("func.PyMacro", "type"),
-    "func.PolymorphicFunc" : lyli.object.Object("func.PyMacro", "type"),
+    "func": lyli.object.Object(
+      "func",
+      "module",
+      context.Context({
+        "Func": lyli.object.Object("func.Func", "type"),
+        "PyFunc": lyli.object.Object("func.PyFunc", "type"),
+        "BOp": lyli.object.Object("func.BOp", "type"),
+        "Macro": lyli.object.Object("func.Macro", "type"),
+        "PyMacro": lyli.object.Object("func.PyMacro", "type"),
+        "PolymorphicFunc": lyli.object.Object("func.PyMacro", "type"),
+      }),
+    ),
 
     "FN" : func.PolymorphicMacro([
       func.TypedPyMacro(["ast.Symbol"], _FN),
