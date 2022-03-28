@@ -440,4 +440,13 @@ prelude_ctx = context.Context({
     "left" : func.PyFunc(_left),
     "right" : func.PyFunc(_right),
 
+    "len": func.TypedPyFunc(["str"], lambda x: (
+      lyli.object.Object(len(x.val), "int")
+    )),
+    "head": func.TypedPyFunc(["str"], lambda x: (
+      lyli.object.Object(x.val[0], "char")
+    )),
+    "tail": func.TypedPyFunc(["str"], lambda x: (
+      lyli.object.Object(x.val[1:], "str")
+    )),
 })
