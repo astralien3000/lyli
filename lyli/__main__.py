@@ -1,4 +1,5 @@
 import lark
+import sys
 
 import lyli.eval as eval
 import lyli.grammar as grammar
@@ -11,16 +12,16 @@ parser = lark.Lark(grammar.grammar, parser="lalr", transformer=transformer.Trans
 
 context.cur_ctx = context.Context({}, prelude.prelude_ctx)
 
-def main():
-  import sys
-  if len(sys.argv) == 1:
+
+def main(argv=sys.argv[1:]):
+  if len(argv) == 0:
     while True:
       raw = input(">")
       expr = parser.parse(raw)
       res = eval.eval_one(expr)
       if res: print(res)
-  elif len(sys.argv) == 2:
-    with open(sys.argv[1], "r") as f:
+  elif len(argv) == 1:
+    with open(argv[0], "r") as f:
       expr = parser.parse(f.read())
       print("---------------- ast BEG ----------------")
       print(expr)
@@ -29,7 +30,7 @@ def main():
       if context.cur_ctx.exists("main"):
         print("main found ! compile...")
         compile.compile_main(context.cur_ctx["main"])
-        
+
 
 if __name__ == "__main__":
   main()
