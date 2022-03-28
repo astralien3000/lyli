@@ -1,6 +1,6 @@
-import lyli.type
+import lyli.object
 
-class Expr(lyli.type.Object):
+class Expr(lyli.object.Object):
   pass
 
 class Atomic(Expr):
@@ -9,7 +9,7 @@ class Atomic(Expr):
 class Symbol(Atomic):
   def __init__(self, name):
     self.name = name
-    lyli.type.Object.__init__(self, self, "ast.Symbol")
+    lyli.object.Object.__init__(self, self, "ast.Symbol")
   def escape(c):
     if ord(c) < 128:
       return c
@@ -20,14 +20,14 @@ class Symbol(Atomic):
 class String(Atomic):
   def __init__(self, val):
     self.val = val
-    lyli.type.Object.__init__(self, val, "str")
+    lyli.object.Object.__init__(self, val, "str")
   def __str__(self):
     return self.val
 
 class Char(Atomic):
   def __init__(self, val):
     self.val = val
-    lyli.type.Object.__init__(self, val, "char")
+    lyli.object.Object.__init__(self, val, "char")
   def __str__(self):
     return self.val
 
@@ -56,7 +56,7 @@ class Integer(Atomic):
   def __init__(self, val):
     self.str = val
     self.int = Integer.get_int(val)
-    lyli.type.Object.__init__(self, self.int, "int")
+    lyli.object.Object.__init__(self, self.int, "int")
   def __str__(self):
     return str(self.val)
 
@@ -64,14 +64,14 @@ class Float(Atomic):
   def __init__(self, val):
     self.str = val
     self.val = float(val)
-    lyli.type.Object.__init__(self, val, "float")
+    lyli.object.Object.__init__(self, val, "float")
   def __str__(self):
     return str(self.val)
 
 class Call(Expr):
   def __init__(self, items):
     self.items = items
-    lyli.type.Object.__init__(self, self, "ast.Call")
+    lyli.object.Object.__init__(self, self, "ast.Call")
   def __getitem__(self, i):
     return self.items[i]
   def __str__(self):

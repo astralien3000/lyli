@@ -58,7 +58,7 @@ def gen_func(name, fn):
     {str(fn.restype) if fn.restype else "void"}
     {str(name)}
     ({", ".join([
-      f"{p.type} {p}"
+      f"{p.typ} {p}"
       for p in fn.params
     ])})
     {{

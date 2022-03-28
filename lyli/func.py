@@ -1,14 +1,14 @@
 import lyli.ast as ast
 import lyli.context as context
 import lyli.eval as eval
-import lyli.type
+import lyli.object
 
 def typeof(arg):
   #print("typeof : " + str(arg))
-  if isinstance(arg.type, lyli.type.Object):
-    return arg.type
+  if isinstance(arg.typ, lyli.object.Object):
+    return arg.typ
   else:
-    return context.cur_ctx[arg.type]
+    return context.cur_ctx[arg.typ]
 
 def args_types(*args):
   #print("args_types : " + str(args))
@@ -16,31 +16,31 @@ def args_types(*args):
 
 def match_types(a, b):
   #print("match_types : " + str((str(a),str(b))))
-  if isinstance(a, lyli.type.Object):
+  if isinstance(a, lyli.object.Object):
     return match_types(a.val, b)
-  elif isinstance(b, lyli.type.Object):
+  elif isinstance(b, lyli.object.Object):
     return match_types(a, b.val)
   elif callable(b):
     return b(a)
   else:
     return a == b
 
-class Func(lyli.type.Object):
+class Func(lyli.object.Object):
   class Return(object):
     def __init__(self, val):
       self.val = val
-  def __init__(self, restype, params_types, params, exp, ctx):
+  def __init__(self, restype, params_types, params, exp, func_ctx):
     self.params = params
     self.exp = exp
-    self.ctx = ctx
+    self.func_ctx = func_ctx
     self.restype = restype
     self.params_types = params_types
-    lyli.type.Object.__init__(self, self, "func.Func")
+    lyli.object.Object.__init__(self, self, "func.Func")
   def __call__(self, *_args):
     #print("FUNC : " + str(self) + str(_args))
     args = [eval.eval_one(exp) for exp in _args]
     prev_ctx = context.cur_ctx
-    context.cur_ctx =  context.Context(zip(map(lambda x: str(x), self.params), args), self.ctx)
+    context.cur_ctx =  context.Context(zip(map(lambda x: str(x), self.params), args), self.func_ctx)
     ret = None
     for e in self.exp:
       tmp = eval.eval_one(e)
@@ -62,18 +62,18 @@ class Func2(Func):
   class Return(object):
     def __init__(self, val):
       self.val = val
-  def __init__(self, restype, params_types, params, exp, ctx):
+  def __init__(self, restype, params_types, params, exp, func_ctx):
     self.params = params
     self.exp = exp
-    self.ctx = ctx
+    self.func_ctx = func_ctx
     self.restype = restype
     self.params_types = params_types
-    lyli.type.Object.__init__(self, self, "func.Func")
+    lyli.object.Object.__init__(self, self, "func.Func")
   def __call__(self, *_args):
     #print("FUNC : " + str(self) + str(_args))
     args = [eval.eval_one(exp) for exp in _args]
     prev_ctx = context.cur_ctx
-    context.cur_ctx =  context.Context(zip(map(lambda x: str(x), self.params), args), self.ctx)
+    context.cur_ctx =  context.Context(zip(map(lambda x: str(x), self.params), args), self.func_ctx)
     ret = eval.eval_one(self.exp)
     context.cur_ctx = prev_ctx
     return ret
@@ -90,7 +90,7 @@ class BOp(Func):
   def __init__(self, func, ret = None):
     self.func = func
     self.ret = ret
-    lyli.type.Object.__init__(self, self, "func.BOp")
+    lyli.object.Object.__init__(self, self, "func.BOp")
   def match(self, *args):
     return True
   def __call__(self, a, b):
@@ -100,14 +100,14 @@ class BOp(Func):
     #print("b = " + str(b))
     #print("aa = " + str(aa))
     #print("bb = " + str(bb))
-    assert(aa.type == bb.type)
+    assert(aa.typ == bb.typ)
     ret = self.func(aa.val, bb.val)
-    return lyli.type.Object(ret, self.ret if self.ret else aa.type)
+    return lyli.object.Object(ret, self.ret if self.ret else aa.typ)
 
 class PyFunc(Func):
   def __init__(self, func):
     self.func = func
-    lyli.type.Object.__init__(self, self, "func.PyFunc")
+    lyli.object.Object.__init__(self, self, "func.PyFunc")
   def match(self, *args):
     return True
   def __call__(self, *_args):
@@ -124,7 +124,7 @@ class TypedPyFunc(PyFunc):
     self.func = func
     self.params_types = params_types
     assert(len(self.params_types) == func.__code__.co_argcount)
-    lyli.type.Object.__init__(self, self, "func.PyFunc")
+    lyli.object.Object.__init__(self, self, "func.PyFunc")
   def match(self, *_args):
     #print("TypedPyFunc.match : " + str(self) + ";" + str(_args))
     same_arity = (len(self.params_types) == len(_args))
@@ -144,7 +144,7 @@ class Macro(Func):
   def __init__(self, params, exp):
     self.params = params
     self.exp = ast.Call([ast.Symbol("$")] + exp)
-    lyli.type.Object.__init__(self, self, "func.Macro")
+    lyli.object.Object.__init__(self, self, "func.Macro")
   def match(self, *args):
     return True
   def __call__(self, *args):
@@ -155,7 +155,7 @@ class Macro(Func):
 class PyMacro(Macro):
   def __init__(self, func):
     self.func = func
-    lyli.type.Object.__init__(self, self, "func.PyMacro")
+    lyli.object.Object.__init__(self, self, "func.PyMacro")
   def match(self, *args):
     return True
   def __call__(self, *args):
@@ -171,7 +171,7 @@ class TypedPyMacro(Macro):
     self.func = func
     self.params_types = params_types
     assert(len(self.params_types) == func.__code__.co_argcount)
-    lyli.type.Object.__init__(self, self, "func.PyMacro")
+    lyli.object.Object.__init__(self, self, "func.PyMacro")
   def match(self, *_args):
     same_arity = (len(self.params_types) == len(_args))
     return same_arity and all([match_types(a,b) for (a, b) in zip(args_types(*_args), self.params_types)])
@@ -187,7 +187,7 @@ class TypedPyMacro(Macro):
 class PolymorphicFunc(Func):
   def __init__(self, funcs):
     self.funcs = funcs
-    lyli.type.Object.__init__(self, self, "func.PolymorphicFunc")
+    lyli.object.Object.__init__(self, self, "func.PolymorphicFunc")
   def __call__(self, *_args):
     #print("PolymorphicFunc.__call__._args : " + str(_args))
     args = [eval.eval_one(exp) for exp in _args]
@@ -208,7 +208,7 @@ class PolymorphicFunc(Func):
 class PolymorphicMacro(Macro):
   def __init__(self, funcs):
     self.funcs = funcs
-    lyli.type.Object.__init__(self, self, "func.PolymorphicFunc")
+    lyli.object.Object.__init__(self, self, "func.PolymorphicFunc")
   def __call__(self, *args):
     candidates = list(filter(lambda f: f.match(*args), self.funcs))
     if(len(candidates) == 1):

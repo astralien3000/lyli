@@ -2,7 +2,7 @@ import lyli.context as context
 import lyli.ast as ast
 import lyli.func as func
 import lyli.eval as eval
-import lyli.type
+import lyli.object
 
 import operator
 import re
@@ -14,8 +14,8 @@ def _old_print(arg):
     print(arg)
 
 def _str_pair(p):
-  #print(str(p.type))
-  if _is_pair(p.type):
+  #print(str(p.typ))
+  if _is_pair(p.typ):
     return "pair({},{})".format(_str_pair(p.val[0]), _str_pair(p.val[1]))
   else:
     return p.val
@@ -114,7 +114,7 @@ def _if(cond):
     if cond.val:
       return func.PyMacro(lambda a: eval.eval_one(a))
     else:
-      return func.PyMacro(lambda a: lyli.type.Object(None, "NoneType"))
+      return func.PyMacro(lambda a: lyli.object.Object(None, "NoneType"))
 
 def _IF(cond):
     def _IF_then(*then_exprs):
@@ -263,7 +263,7 @@ def _defstruct(*args):
         "def" : func.PyMacro(_def)
     })
     def _get(memb):
-        return lambda obj: lyli.type.Object(getattr(obj, memb), "int")
+        return lambda obj: lyli.object.Object(getattr(obj, memb), "int")
     def _set(memb):
         return lambda obj,val: setattr(obj, memb, val.val)
     for m in members:
@@ -312,11 +312,11 @@ def _Fn(*args):
   def _Fn_ret(ret):
     fnargsret = "{}({})".format(fnargs, str(ret.val))
     #print(fnargsret)
-    return lyli.type.Object(fnargsret, "type")
+    return lyli.object.Object(fnargsret, "type")
   def _Fn_noret():
     fnargsret = "{}()".format(fnargs)
     #print(fnargsret)
-    return lyli.type.Object(fnargsret, "type")
+    return lyli.object.Object(fnargsret, "type")
   return func.PolymorphicFunc([
     func.TypedPyFunc(["type"], _Fn_ret),
     func.TypedPyFunc([], _Fn_noret),
@@ -327,10 +327,10 @@ def _quote(arg):
 
 def _Pair(lt, rt):
   ret = "Pair({},{})".format(lt,rt)
-  return lyli.type.Object(ret, "type")
+  return lyli.object.Object(ret, "type")
 
 def _pair(l, r):
-  return lyli.type.Object((l,r), _Pair(l.type, r.type))
+  return lyli.object.Object((l,r), _Pair(l.typ, r.typ))
 
 def _left(p):
   return p.val[0]
@@ -340,7 +340,7 @@ def _right(p):
 
 def _is_pair(s):
   #print("_is_pair : " + str(s))
-  if isinstance(s, lyli.type.Object):
+  if isinstance(s, lyli.object.Object):
     return re.fullmatch("Pair\(.+,.+\)", s.val)
   else:
     return re.fullmatch("Pair\(.+,.+\)", s)
@@ -390,28 +390,28 @@ prelude_ctx = context.Context({
 
     "typeof" : func.PyFunc(func.typeof),
 
-    "true" : lyli.type.Object(True, "bool"),
-    "false" : lyli.type.Object(False, "bool"),
+    "true" : lyli.object.Object(True, "bool"),
+    "false" : lyli.object.Object(False, "bool"),
     
-    "type" : lyli.type.Object("type", "type"),
-    "bool" : lyli.type.Object("bool", "type"),
+    "type" : lyli.object.Object("type", "type"),
+    "bool" : lyli.object.Object("bool", "type"),
     
-    "int" : lyli.type.Object("int", "type"),
-    "float" : lyli.type.Object("float", "type"),
-    "char" : lyli.type.Object("char", "type"),
-    "str" : lyli.type.Object("str", "type"),
+    "int" : lyli.object.Object("int", "type"),
+    "float" : lyli.object.Object("float", "type"),
+    "char" : lyli.object.Object("char", "type"),
+    "str" : lyli.object.Object("str", "type"),
 
-    "NoneType" : lyli.type.Object("NoneType", "type"),
+    "NoneType" : lyli.object.Object("NoneType", "type"),
 
-    "ast.Call" : lyli.type.Object("ast.Call", "type"),
-    "ast.Symbol" : lyli.type.Object("ast.Symbol", "type"),
+    "ast.Call" : lyli.object.Object("ast.Call", "type"),
+    "ast.Symbol" : lyli.object.Object("ast.Symbol", "type"),
 
-    "func.Func" : lyli.type.Object("func.Func", "type"),
-    "func.PyFunc" : lyli.type.Object("func.PyFunc", "type"),
-    "func.BOp" : lyli.type.Object("func.BOp", "type"),
-    "func.Macro" : lyli.type.Object("func.Macro", "type"),
-    "func.PyMacro" : lyli.type.Object("func.PyMacro", "type"),
-    "func.PolymorphicFunc" : lyli.type.Object("func.PyMacro", "type"),
+    "func.Func" : lyli.object.Object("func.Func", "type"),
+    "func.PyFunc" : lyli.object.Object("func.PyFunc", "type"),
+    "func.BOp" : lyli.object.Object("func.BOp", "type"),
+    "func.Macro" : lyli.object.Object("func.Macro", "type"),
+    "func.PyMacro" : lyli.object.Object("func.PyMacro", "type"),
+    "func.PolymorphicFunc" : lyli.object.Object("func.PyMacro", "type"),
 
     "FN" : func.PolymorphicMacro([
       func.TypedPyMacro(["ast.Symbol"], _FN),
