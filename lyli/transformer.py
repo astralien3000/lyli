@@ -7,11 +7,19 @@ class Transformer(lark.Transformer):
         return args[0]
     def expr(self, args):
         return args[0]
+    def uop_expr(self, args):
+        return args[0]
     def call_expr(self, args):
         #print("CALL_EXPR " + str(args))
         return ast.Call([args[0]] + args[1])
     def atomic_expr(self, args):
         return args[0]
+    def bop_expr(self, args):
+        return ast.Call([args[1], args[0], args[2]])
+    def uop_prefix_expr(self, args):
+        return ast.Call([args[0], args[1]])
+    def uop_suffix_expr(self, args):
+        return ast.Call([args[1], args[0]])
 
     def start(self, args):
         return ast.Call([ast.Symbol("$")] + args[0])
@@ -34,8 +42,16 @@ class Transformer(lark.Transformer):
         #print(args[0])
         return ast.Symbol(args[0])
 
-    def operator(self, args):
+    def cmpd_op(self, args):
         return ast.Symbol(args[0])
+    def smpl_op(self, args):
+        return ast.Symbol(args[0])
+    def pre_uop(self, args):
+        return ast.Symbol(args[0])
+    def suf_uop(self, args):
+        return ast.Symbol(args[0])
+    def operator(self, args):
+        return args[0]
 
     def stmt(self, *args):
         #print("STMT " + str(*args))

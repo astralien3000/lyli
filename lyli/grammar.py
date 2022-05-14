@@ -5,6 +5,9 @@ instr : expr
 
 expr : atomic_expr
      | call_expr
+     | uop_expr
+     | bop_expr
+     | "(" expr ")"
 
 stmt : expr (expr)+
 
@@ -16,25 +19,54 @@ atomic_expr : string_expr
             | symbol_expr
             | operator
 
-call_expr : expr "(" instr_list ")"
-          | expr "{" instr_list "}"
-          | expr "[" instr_list "]"
+call_expr: expr ("!")? "(" instr_list ")"
+         | expr "{" instr_list "}"
+         | expr "[" instr_list "]"
+         | expr "<" instr_list ">"
 
-instr_list : (instr ",")* instr?
-           | (instr ";")* instr?
+bop_expr: expr operator expr
 
-operator : PP | MM
-         | DOT | ARROW
-         | MUL | BWAND | NOT | BWNOT
-         | DIV | MOD
-         | ADD | SUB
-         | LT | GT | LE | GE
-         | EQ | NEQ
-         | OR
-         | ASSIGN
-         | EVAL
-         | SCOPE
-         | COLON
+uop_expr: uop_prefix_expr
+        | uop_suffix_expr
+
+uop_prefix_expr: pre_uop expr
+uop_suffix_expr: expr suf_uop
+
+instr_list: (instr ",")* instr?
+          | (instr ";")* instr?
+
+pre_uop: PP | MM
+       | EVAL
+       | NOT | BWNOT
+       | MUL | BWAND
+
+suf_uop: PP | MM
+
+cmpd_op: ARROW
+       | LSHIFT | RSHIFT
+       | AND | OR
+       | POW
+       | LSHIFT | RSHIFT
+       | SCOPE
+       | IAND | IOR
+       | IMUL
+       | IBWAND | IBWOR
+       | INOT | IBWNOT
+       | IDIV | IMOD
+       | IADD | ISUB
+       | LE | GE
+       | EQ | NEQ
+
+smpl_op: DOT
+       | MUL
+       | BWAND | BWOR 
+       | DIV | MOD
+       | ADD | SUB
+       | LT | GT
+       | ASSIGN
+       | COLON
+
+operator: cmpd_op | smpl_op
 
 COLON : ":"
 
@@ -48,8 +80,13 @@ MM : "--"
 DOT : "."
 ARROW : "->"
 
+AND : "&&"
+OR : "||"
+
 MUL : "*"
+POW : "**"
 BWAND : "&"
+BWOR : "|"
 NOT : "!"
 BWNOT : "~"
 
@@ -59,6 +96,9 @@ MOD : "%"
 ADD : "+"
 SUB : "-"
 
+LSHIFT : "<<"
+RSHIFT : ">>"
+
 LT : "<"
 GT : ">"
 LE : "<="
@@ -67,9 +107,25 @@ GE : ">="
 EQ : "=="
 NEQ : "!="
 
-OR : "||"
-
 ASSIGN : "="
+
+IAND : "&&="
+IOR : "||="
+
+IMUL : "*="
+IBWAND : "&="
+IBWOR : "|="
+INOT : "!="
+IBWNOT : "~="
+
+IDIV : "/="
+IMOD : "%="
+
+IADD : "+="
+ISUB : "-="
+
+ILSHIFT : "<<="
+IRSHIFT : ">>="
 
 string_expr : STRING
 
@@ -109,7 +165,7 @@ CHAR_LITERAL : /'[^'\\n]'/
 
 IDENTIFIER : /[^\W\d]\w*/
 
-COMMENT : "//" /[^\\n]*/
+COMMENT : ("//"|"#") /[^\\n]*/
 LONGCOMMENT : "/*" /.*/ "*/"
 
 WS : /\s/
