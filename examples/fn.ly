@@ -17,10 +17,21 @@ let add6 = fn(a, b) -> int { a + b + 0x6 };
 let add7 = fn(a : int, b : int) -> int { a + b + 0x7 };
 
 // "recursive-enabled let" form
-let add8 = fn tmp(a, b) { a + b + 0x8 };
-let add9 = fn tmp(a : int, b : int) { a + b + 0x9 };
-let addA = fn tmp(a, b) -> int { a + b + 0xA };
-let addB = fn tmp(a : int, b : int) -> int { a + b + 0xB };
+let add8 = (
+  fn tmp(a, b) { a + b + 0x8 }
+);
+
+let add9 = (
+  fn tmp(a : int, b : int) { a + b + 0x9 }
+);
+
+let addA = (
+  fn tmp(a, b) -> int { a + b + 0xA }
+);
+
+let addB = (
+  fn tmp(a : int, b : int) -> int { a + b + 0xB }
+);
 
 // "call" form
 FN(addC)(a, b)()(a + b + 0xC);

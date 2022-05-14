@@ -2,14 +2,16 @@ grammar = """start : instr_list
 
 instr : expr
       | stmt
+      | bop_stmt
+      | uop_expr
+      | operator
+      | "(" instr ")"
 
 expr : atomic_expr
      | call_expr
-     | uop_expr
-     | bop_expr
-     | "(" expr ")"
 
 stmt : expr (expr)+
+     | expr (expr)* bop_expr
 
 atomic_expr : string_expr
             | longstring_expr
@@ -17,14 +19,15 @@ atomic_expr : string_expr
             | float_expr
             | integer_expr
             | symbol_expr
-            | operator
 
 call_expr: expr ("!")? "(" instr_list ")"
          | expr "{" instr_list "}"
          | expr "[" instr_list "]"
-         | expr "<" instr_list ">"
 
-bop_expr: expr operator expr
+par_expr: expr | "(" instr ")"
+
+bop_expr: expr (all_bop par_expr)+
+bop_stmt: par_expr (all_bop par_expr)+
 
 uop_expr: uop_prefix_expr
         | uop_suffix_expr
@@ -35,38 +38,39 @@ uop_suffix_expr: expr suf_uop
 instr_list: (instr ",")* instr?
           | (instr ";")* instr?
 
-pre_uop: PP | MM
-       | EVAL
-       | NOT | BWNOT
-       | MUL | BWAND
+puop: EVAL | NOT | BWNOT
+buop: SUB | ADD | MUL | BWAND
 
 suf_uop: PP | MM
 
-cmpd_op: ARROW
-       | LSHIFT | RSHIFT
-       | AND | OR
-       | POW
-       | LSHIFT | RSHIFT
-       | SCOPE
-       | IAND | IOR
-       | IMUL
-       | IBWAND | IBWOR
-       | INOT | IBWNOT
-       | IDIV | IMOD
-       | IADD | ISUB
-       | LE | GE
-       | EQ | NEQ
+cmpd_bop: ARROW
+        | LSHIFT | RSHIFT
+        | AND | OR
+        | POW
+        | LSHIFT | RSHIFT
+        | SCOPE
+        | IAND | IOR
+        | IMUL
+        | IBWAND | IBWOR
+        | INOT | IBWNOT
+        | IDIV | IMOD
+        | IADD | ISUB
+        | LE | GE
+        | EQ | NEQ
 
-smpl_op: DOT
-       | MUL
-       | BWAND | BWOR 
-       | DIV | MOD
-       | ADD | SUB
-       | LT | GT
-       | ASSIGN
-       | COLON
+par_bop: LT | GT
 
-operator: cmpd_op | smpl_op
+smpl_bop: DOT
+        | BWOR 
+        | DIV | MOD
+        | ASSIGN
+        | COLON
+
+pre_uop: buop | puop | suf_uop
+
+all_bop: cmpd_bop | smpl_bop | par_bop | buop
+
+operator: all_bop | puop | suf_uop
 
 COLON : ":"
 

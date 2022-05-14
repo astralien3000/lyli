@@ -27,7 +27,7 @@ struct Test {
 Test test;
 
 test.set_a(666);
-test.set_b($(test.get_a() + 1) * 10);
+test.set_b((test.get_a() + 1) * 10);
 
 print(test.get_a());
 print(test.get_b());

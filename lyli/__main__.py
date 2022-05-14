@@ -8,7 +8,7 @@ import lyli.prelude as prelude
 import lyli.context as context
 import lyli.compile as compile
 
-parser = lark.Lark(grammar.grammar)
+parser = lark.Lark(grammar.grammar, parser="lalr")
 trans = transformer.Transformer()
 
 context.cur_ctx = context.Context({}, prelude.prelude_ctx)
