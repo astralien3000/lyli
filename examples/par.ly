@@ -39,3 +39,6 @@ op(<<) << a & b;
 return (-a);
 return (+"lool");
 return (5++);
+
+for (a in list(5,8,7)) {};
+5 + (a and b) * 3;

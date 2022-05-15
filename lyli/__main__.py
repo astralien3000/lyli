@@ -35,10 +35,10 @@ def main(argv=sys.argv[1:]):
       print("---------------- ast BEG ----------------")
       print(expr)
       print("---------------- ast END ----------------")
-      """res = eval.eval_one(expr)
-      if "main" in context.cur_ctx:
-        print("main found ! compile...")
-        compile.compile_main(context.cur_ctx["main"])"""
+      # res = eval.eval_one(expr)
+      # if "main" in context.cur_ctx:
+      #   print("main found ! compile...")
+      #   compile.compile_main(context.cur_ctx["main"])
 
 
 if __name__ == "__main__":

@@ -22,7 +22,6 @@ class Transformer(lark.Transformer):
         ast.Call([args[1], args[0], args[2]]),
         *args[3:],
       ]
-    print("LOOL ", args[0])
     return args[0]
   def bop_stmt(self, args):
     while len(args) > 1:
@@ -30,7 +29,6 @@ class Transformer(lark.Transformer):
         ast.Call([args[1], args[0], args[2]]),
         *args[3:],
       ]
-    print("LOOL STMT ", args[0])
     return args[0]
 
   def uop_prefix_expr(self, args):
@@ -56,26 +54,23 @@ class Transformer(lark.Transformer):
     return ast.Float(str(args[0]))
   
   def symbol_expr(self, args):
-      #print(args[0])
-    return ast.Symbol(args[0])
+    return ast.Symbol(str(args[0]))
 
   def cmpd_bop(self, args):
-    return ast.Symbol(args[0])
+    return ast.Symbol(str(args[0]))
   def smpl_bop(self, args):
-    return ast.Symbol(args[0])
+    return ast.Symbol(str(args[0]))
   def suf_uop(self, args):
-    return ast.Symbol(args[0])
+    return ast.Symbol(str(args[0]))
   def buop(self, args):
-    return ast.Symbol(args[0])
+    return ast.Symbol(str(args[0]))
   def puop(self, args):
-    return ast.Symbol(args[0])
+    return ast.Symbol(str(args[0]))
   def par_bop(self, args):
-    return ast.Symbol(args[0])
+    return ast.Symbol(str(args[0]))
   def pre_uop(self, args):
     return args[0]
   def all_bop(self, args):
-    return args[0]
-  def buop(self, args):
     return args[0]
   def operator(self, args):
     return args[0]

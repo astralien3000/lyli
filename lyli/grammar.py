@@ -38,30 +38,37 @@ uop_suffix_expr: expr suf_uop
 instr_list: (instr ",")* instr?
           | (instr ";")* instr?
 
-puop: EVAL | NOT | BWNOT
-buop: SUB | ADD | MUL | BWAND
+puop: EVAL
+    | NOT | BWNOT
+    | AT
+
+buop: SUB | ADD
+    | MUL | BWAND
 
 suf_uop: PP | MM
 
-cmpd_bop: ARROW
+cmpd_bop: LARROW | RARROW
+        | BIGRARROW
         | LSHIFT | RSHIFT
+        | LLSHIFT | RRSHIFT
         | AND | OR
         | POW
         | LSHIFT | RSHIFT
         | SCOPE
         | IAND | IOR
-        | IMUL
-        | IBWAND | IBWOR
+        | IMUL | IPOW
+        | IBWAND | IBWOR | IBWXOR
         | INOT | IBWNOT
         | IDIV | IMOD
         | IADD | ISUB
         | LE | GE
-        | EQ | NEQ
+        | EQ | NE
+        | EEQ | NEE
 
 par_bop: LT | GT
 
 smpl_bop: DOT
-        | BWOR 
+        | BWOR | BWXOR
         | DIV | MOD
         | ASSIGN
         | COLON
@@ -78,19 +85,28 @@ SCOPE : "::"
 
 EVAL : "$"
 
+AT : "@"
+
 PP : "++"
 MM : "--"
 
 DOT : "."
-ARROW : "->"
+
+LARROW : "<-"
+RARROW : "->"
+
+BIGRARROW : "=>"
 
 AND : "&&"
 OR : "||"
 
 MUL : "*"
 POW : "**"
+
 BWAND : "&"
 BWOR : "|"
+BWXOR : "^"
+
 NOT : "!"
 BWNOT : "~"
 
@@ -103,13 +119,19 @@ SUB : "-"
 LSHIFT : "<<"
 RSHIFT : ">>"
 
+LLSHIFT : "<<<"
+RRSHIFT : ">>>"
+
 LT : "<"
 GT : ">"
 LE : "<="
 GE : ">="
 
 EQ : "=="
-NEQ : "!="
+NE : "!="
+
+EEQ : "==="
+NEE : "!=="
 
 ASSIGN : "="
 
@@ -117,8 +139,12 @@ IAND : "&&="
 IOR : "||="
 
 IMUL : "*="
+IPOW : "**="
+
 IBWAND : "&="
 IBWOR : "|="
+IBWXOR : "^="
+
 INOT : "!="
 IBWNOT : "~="
 
