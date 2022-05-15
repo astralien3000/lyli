@@ -1,4 +1,4 @@
-grammar = """start : instr_list
+start : instr_list
 
 instr : expr
       | stmt
@@ -189,17 +189,16 @@ FLOAT_INTEGER : /(0|[1-9]([0-9]|_[0-9])*)/
 FLOAT_DECIMAL : /\.[0-9]([0-9]|_[0-9])*/
 FLOAT_EXPONENT : /[eE][0-9]([0-9]|_[0-9])*/
 
-STRING : /\"[^\"\\n]*\"/
+STRING : /\"[^\"\n]*\"/
 LONGSTRING : /\"\"\"([^\"]|\"\"?[^\"])+\"\"\"/
-CHAR_LITERAL : /'[^'\\n]'/
+CHAR_LITERAL : /'[^'\n]'/
 
 IDENTIFIER : /[^\W\d]\w*/
 
-COMMENT : ("//"|"#") /[^\\n]*/
+COMMENT : ("//"|"#") /[^\n]*/
 LONGCOMMENT : "/*" /.*/ "*/"
 
 WS : /\s/
 %ignore WS
 %ignore COMMENT
 %ignore LONGCOMMENT
-"""

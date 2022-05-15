@@ -1,14 +1,25 @@
 import lark
 import sys
+import os
 
 import lyli.eval as eval
-import lyli.grammar as grammar
 import lyli.transformer as transformer
 import lyli.prelude as prelude
 import lyli.context as context
 import lyli.compile as compile
 
-parser = lark.Lark(grammar.grammar, parser="lalr")
+
+GRAMMAR_PATH = os.path.join(
+  os.path.dirname(
+    os.path.abspath(__file__)
+  ),
+  "grammar.lark",
+)
+
+with open(GRAMMAR_PATH, "r", encoding="utf-8") as f:
+  grammar = f.read();
+
+parser = lark.Lark(grammar, parser="lalr")
 trans = transformer.Transformer()
 
 context.cur_ctx = context.Context({}, prelude.prelude_ctx)
