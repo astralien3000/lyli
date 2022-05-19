@@ -1,6 +1,7 @@
 import lark
 import sys
 import os
+import re
 
 import lyli.eval as eval
 import lyli.transformer as transformer
@@ -24,6 +25,9 @@ trans = transformer.Transformer()
 
 context.cur_ctx = context.Context({}, prelude.prelude_ctx)
 
+def clean_comments(code):
+  return re.sub(r"\/\/+.*\n|\/\*(.|\n)*\*\/", "", code)
+
 
 def main(argv=sys.argv[1:]):
   if len(argv) == 0:
@@ -33,9 +37,10 @@ def main(argv=sys.argv[1:]):
       res = eval.eval_one(expr)
       if res: print(res)
   elif len(argv) == 1:
-    with open(argv[0], "r") as f:
+    with open(argv[0], "r", encoding="utf-8") as f:
       code = f.read()
-      raw = parser.parse(code)
+      cleaned_code = clean_comments(code)
+      raw = parser.parse(cleaned_code)
       expr = trans.transform(raw)
       print("---------------- code BEG ----------------")
       print(code)

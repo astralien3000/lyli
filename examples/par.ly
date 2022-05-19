@@ -42,3 +42,15 @@ return (5++);
 
 for (a in list(5,8,7)) {};
 5 + (a and b) * 3;
+
+let a = fn(a, b) { a + b } ();
+let b : int = 0 + 1;
+
+/// comment
+a ! /*comment*/ b;
+
+a !!:.? b;
+a ==== b;
+a <==> b;
+a - (b++);
+a - (-b);

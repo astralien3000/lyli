@@ -20,142 +20,23 @@ atomic_expr : string_expr
             | integer_expr
             | symbol_expr
 
-call_expr: expr ("!")? "(" instr_list ")"
+call_expr: expr "(" instr_list ")"
          | expr "{" instr_list "}"
          | expr "[" instr_list "]"
 
 par_expr: expr | "(" instr ")"
 
-bop_expr: expr (all_bop par_expr)+
-bop_stmt: par_expr (all_bop par_expr)+
+bop_expr: expr (operator par_expr)+
 
-uop_expr: uop_prefix_expr
-        | uop_suffix_expr
+bop_stmt: par_expr (operator par_expr)+
+        | par_expr operator
 
-uop_prefix_expr: pre_uop expr
-uop_suffix_expr: expr suf_uop
+uop_expr: operator expr
 
 instr_list: (instr ",")* instr?
           | (instr ";")* instr?
 
-puop: EVAL
-    | NOT | BWNOT
-    | AT
-
-buop: SUB | ADD
-    | MUL | BWAND
-
-suf_uop: PP | MM
-
-cmpd_bop: LARROW | RARROW
-        | BIGRARROW
-        | LSHIFT | RSHIFT
-        | LLSHIFT | RRSHIFT
-        | AND | OR
-        | POW
-        | LSHIFT | RSHIFT
-        | SCOPE
-        | IAND | IOR
-        | IMUL | IPOW
-        | IBWAND | IBWOR | IBWXOR
-        | INOT | IBWNOT
-        | IDIV | IMOD
-        | IADD | ISUB
-        | LE | GE
-        | EQ | NE
-        | EEQ | NEE
-
-par_bop: LT | GT
-
-smpl_bop: DOT
-        | BWOR | BWXOR
-        | DIV | MOD
-        | ASSIGN
-        | COLON
-
-pre_uop: buop | puop | suf_uop
-
-all_bop: cmpd_bop | smpl_bop | par_bop | buop
-
-operator: all_bop | puop | suf_uop
-
-COLON : ":"
-
-SCOPE : "::"
-
-EVAL : "$"
-
-AT : "@"
-
-PP : "++"
-MM : "--"
-
-DOT : "."
-
-LARROW : "<-"
-RARROW : "->"
-
-BIGRARROW : "=>"
-
-AND : "&&"
-OR : "||"
-
-MUL : "*"
-POW : "**"
-
-BWAND : "&"
-BWOR : "|"
-BWXOR : "^"
-
-NOT : "!"
-BWNOT : "~"
-
-DIV : "/"
-MOD : "%"
-
-ADD : "+"
-SUB : "-"
-
-LSHIFT : "<<"
-RSHIFT : ">>"
-
-LLSHIFT : "<<<"
-RRSHIFT : ">>>"
-
-LT : "<"
-GT : ">"
-LE : "<="
-GE : ">="
-
-EQ : "=="
-NE : "!="
-
-EEQ : "==="
-NEE : "!=="
-
-ASSIGN : "="
-
-IAND : "&&="
-IOR : "||="
-
-IMUL : "*="
-IPOW : "**="
-
-IBWAND : "&="
-IBWOR : "|="
-IBWXOR : "^="
-
-INOT : "!="
-IBWNOT : "~="
-
-IDIV : "/="
-IMOD : "%="
-
-IADD : "+="
-ISUB : "-="
-
-ILSHIFT : "<<="
-IRSHIFT : ">>="
+operator: OPERATOR
 
 string_expr : STRING
 
@@ -195,10 +76,7 @@ CHAR_LITERAL : /'[^'\n]'/
 
 IDENTIFIER : /[^\W\d]\w*/
 
-COMMENT : ("//"|"#") /[^\n]*/
-LONGCOMMENT : "/*" /.*/ "*/"
+OPERATOR : /[.*\/+\-:&|=!?~#^@$%<>]+/
 
-WS : /\s/
+WS : /\s+/
 %ignore WS
-%ignore COMMENT
-%ignore LONGCOMMENT
