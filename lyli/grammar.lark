@@ -3,7 +3,7 @@ start : instr_list
 instr : expr
       | stmt
       | bop_stmt
-      | uop_expr
+      | uop_stmt
       | operator
       | "(" instr ")"
 
@@ -28,10 +28,9 @@ par_expr: expr | "(" instr ")"
 
 bop_expr: expr (operator par_expr)+
 
-bop_stmt: par_expr (operator par_expr)+
-        | par_expr operator
+bop_stmt: (par_expr operator)+ par_expr?
 
-uop_expr: operator expr
+uop_stmt: operator par_expr
 
 instr_list: (instr ",")* instr?
           | (instr ";")* instr?

@@ -35,7 +35,7 @@ class Transformer(lark.Transformer):
   def bop_stmt(self, args):
     return associate(args)
 
-  def uop_expr(self, args):
+  def uop_stmt(self, args):
     return ast.Call([args[0], args[1]])
 
   def start(self, args):
@@ -59,7 +59,7 @@ class Transformer(lark.Transformer):
     return ast.Symbol(str(args[0]))
 
   def operator(self, args):
-    return args[0]
+    return ast.Symbol(str(args[0]))
 
   def stmt(self, *args):
       #print("STMT " + str(*args))
