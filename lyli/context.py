@@ -17,7 +17,7 @@ class Context:
   
   def __contains__(self, key):
     return (
-      (key in self.object_dict) or
+      (key in self.data) or
       (
         (self.parent is not None) and
         (key in self.parent)

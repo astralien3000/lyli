@@ -1,6 +1,7 @@
 import lyli.context as context
 import lyli.func as func
 import lyli.eval as eval
+import lyli.ast as ast
 
 
 def _file(ctx, *args):
@@ -10,7 +11,27 @@ def _file(ctx, *args):
   return ctx, ret
 
 
+def _stmt(ctx, *args):
+  return eval.eval(
+    ctx,
+    ast.Call(
+      ast.Symbol(f"stmt.{args[0]}"),
+      *args[1:],
+    )
+  )
+
+
+def _let(ctx, *args):
+  new_ctx = context.Context(ctx, { str(args[0]): args[2] })
+  return new_ctx, None
+
+
 prelude_ctx = context.Context({
-    "print": func.PyFunc(print),
-    "file": func.PyMacro(_file),
+  "file": func.PyMacro(_file),
+  "stmt": func.PyMacro(_stmt),
+
+  "stmt.let": func.PyMacro(_let),
+
+  "print": func.PyFunc(print),
+  "stmt.print": func.PyFunc(print),
 })
