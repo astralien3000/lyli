@@ -1,30 +1,19 @@
-
 class Context:
 
-  def __init__(self, object_dict={}, parent=None):
-    self.object_dict = object_dict
+  def __init__(self, data={}, parent=None):
+    self.data = data
     self.parent = parent
 
   def __getitem__(self, key):
-    # print(f"{key} in {list(self.object_dict)}")
-    if key == ".":
-      path = ["."]
-    else:
-      path = key.split(".")
-    if path[0] in self.object_dict:
-      if len(path) == 1:
-        return self.object_dict[path[0]]
-      else:
-        return self.object_dict[path[0]].ctx[
-          ".".join(path[1:])
-        ]
-    elif self.parent:
+    if key in self.data:
+      return self.data[key]
+    elif self.parent is not None:
       return self.parent[key]
     else:
-      raise Exception(f"NOT FOUND : {key}")
+      raise KeyError(key)
 
   def __setitem__(self, key, val):
-    self.object_dict[key] = val
+    self.data[key] = val
   
   def __contains__(self, key):
     return (
@@ -36,6 +25,4 @@ class Context:
     )
   
   def update(self, update_dict):
-    self.object_dict.update(update_dict)
-
-cur_ctx = Context()
+    self.data.update(update_dict)
