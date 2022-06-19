@@ -6,7 +6,7 @@ import lyli.ast as ast
 class Transformer(lark.Transformer):
 
   def file(self, args):
-    return ast.Call([ast.Symbol("file"), *args[0]])
+    return ast.Call(ast.Symbol("file"), *args[0])
 
   def instr(self, args):
     return args[0]
@@ -15,13 +15,13 @@ class Transformer(lark.Transformer):
     return args[0]
 
   def stmt(self, *args):
-    return ast.Call([ast.Symbol("stmt"), *args[0]])
+    return ast.Call(ast.Symbol("stmt"), *args[0])
 
   def atomic_expr(self, args):
     return args[0]
 
   def call_expr(self, args):
-    return ast.Call([args[0], *args[1]])
+    return ast.Call(args[0], *args[1])
 
   def instr_list(self, args):
     return args

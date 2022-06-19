@@ -1,84 +1,95 @@
-import lyli.object
-
-class Expr(lyli.object.Object):
+class Expr:
+  """
+  Base ast expression class.
+  Can be either an Atomic or a Call.
+  """
   pass
+
 
 class Atomic(Expr):
+  """
+  Atomic ast expression class.
+  Can be a symbol, a string, a char , an Integer or a Float.
+  """
   pass
 
+
 class Symbol(Atomic):
-  def __init__(self, name):
-    self.name = name
-    lyli.object.Object.__init__(self, self, "ast.Symbol")
-  def escape(c):
-    if ord(c) < 128:
-      return c
-    return "_u" + str(ord(c)) + "_"
+  def __init__(self, val: str):
+    assert(isinstance(val, str))
+    self.val = val
+
   def __str__(self):
-    return ''.join(list(map(Symbol.escape, self.name)))
+    return self.val
+  
+  @property
+  def name(self):
+    return self.val
+
 
 class String(Atomic):
-  def __init__(self, val):
+  def __init__(self, val: str):
+    assert(isinstance(val, str))
     self.val = val
-    lyli.object.Object.__init__(self, val, "str")
+
   def __str__(self):
+    return f'"{self.val}"'
+
+  @property
+  def value(self):
     return self.val
+
 
 class Char(Atomic):
-  def __init__(self, val):
+  def __init__(self, val: str):
+    assert(isinstance(val, str))
+    assert(len(val) == 1)
     self.val = val
-    lyli.object.Object.__init__(self, val, "char")
+
+  def __str__(self):
+    return f"'{self.val}'"
+
+  @property
+  def value(self):
+    return self.val
+
+
+class Integer(Atomic):
+  def __init__(self, val: str):
+    assert(isinstance(val, str))
+    self.val = val
+
   def __str__(self):
     return self.val
 
-class Integer(Atomic):
-  def split_int(str):
-    prefix = None
-    body = str
-    if str[:2] in ["0b","0o","0d","0x"]:
-      prefix = str[:2]
-      body = str[2:]
-    return (prefix, body)
-  def get_int_base(str):
-    prefix = Integer.split_int(str)[0]
-    convert = {
-      None : 10,
-      "0b" : 2,
-      "0o" : 8,
-      "0d" : 10,
-      "0x" : 16,
-    }
-    return convert[prefix]
-  def get_int(str):
-    base = Integer.get_int_base(str)
-    body = Integer.split_int(str)[1]
-    return int(body, base)
-  def __init__(self, val):
-    self.str = val
-    self.int = Integer.get_int(val)
-    lyli.object.Object.__init__(self, self.int, "int")
-  def __str__(self):
-    return str(self.val)
+  @property
+  def value(self):
+    return int(self.val)
+
 
 class Float(Atomic):
   def __init__(self, val):
-    self.str = val
-    self.val = float(val)
-    lyli.object.Object.__init__(self, val, "float")
+    assert(isinstance(val, str))
+    self.val = val
+
   def __str__(self):
-    return str(self.val)
+    return self.val
+
+  @property
+  def value(self):
+    return float(self.val)
+
 
 class Call(Expr):
-  def __init__(self, items):
-    self.items = items
-    lyli.object.Object.__init__(self, self, "ast.Call")
+  def __init__(self, *args):
+    self.args = args
+
   def __getitem__(self, i):
-    return self.items[i]
+    return self.args[i]
+
   def __str__(self):
-    ret = "("
-    ret += str(self.items[0])
-    for a in self.items[1:]:
-      ret += " "
-      ret += str(a)
-    ret += ")"
-    return ret
+    return f"""({
+      " ".join([
+        str(arg) for arg in self.args
+      ])
+    })"""
