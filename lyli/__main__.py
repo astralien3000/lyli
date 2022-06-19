@@ -30,11 +30,14 @@ def clean_comments(code):
 
 
 def main(argv=sys.argv[1:]):
+  cur_ctx = context.Context(prelude.prelude_ctx)
   if len(argv) == 0:
     while True:
-      raw = input(">")
-      expr = parser.parse(raw)
-      res = eval.eval_one(expr)
+      code = input(">")
+      raw = parser.parse(code)
+      expr = trans.transform(raw)
+      print(expr)
+      cur_ctx, res = eval.eval(cur_ctx, expr)
       if res: print(res)
   elif len(argv) == 1:
     with open(argv[0], "r", encoding="utf-8") as f:
@@ -42,19 +45,19 @@ def main(argv=sys.argv[1:]):
       cleaned_code = clean_comments(code)
       raw = parser.parse(cleaned_code)
       expr = trans.transform(raw)
-      print("---------------- code BEG ----------------")
-      print(code)
-      print("---------------- code END ----------------")
+      # print("---------------- code BEG ----------------")
+      # print(code)
+      # print("---------------- code END ----------------")
       # print("---------------- raw ast BEG ----------------")
       # print(raw)
       # print("---------------- raw ast END ----------------")
       print("---------------- ast BEG ----------------")
       print(expr)
       print("---------------- ast END ----------------")
-      # res = eval.eval_one(expr)
-      # if "main" in context.cur_ctx:
-      #   print("main found ! compile...")
-      #   compile.compile_main(context.cur_ctx["main"])
+      cur_ctx, res = eval.eval(cur_ctx, expr)
+      if "main" in context.cur_ctx:
+        print("main found ! compile...")
+        compile.compile_main(context.cur_ctx["main"])
 
 
 if __name__ == "__main__":

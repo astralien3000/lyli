@@ -8,7 +8,7 @@ def eval(ctx, expr):
   elif isinstance(expr, ast.Atomic):
     return ctx, expr.value
   elif isinstance(expr, ast.Call):
-    f = eval(expr[0])
+    _, f = eval(ctx, expr[0])
     if isinstance(f, func.Func):
       args = expr[1:]
       return f(ctx, *args)

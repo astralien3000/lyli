@@ -1,8 +1,8 @@
 class Context:
 
-  def __init__(self, data={}, parent=None):
-    self.data = data
+  def __init__(self, parent=None, data={}):
     self.parent = parent
+    self.data = data
 
   def __getitem__(self, key):
     if key in self.data:
