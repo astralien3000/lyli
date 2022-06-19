@@ -24,11 +24,11 @@ struct Test {
   int c;
 };
 
-Test test;
+let test : Test;
 
-test.set_a(666);
-test.set_b((test.get_a() + 1) * 10);
+test.a = 666;
+test.b = (test.a + 1) * 10;
 
-print(test.get_a());
-print(test.get_b());
-print(test.get_c());
+print(test.a);
+print(test.b);
+print(test.c);

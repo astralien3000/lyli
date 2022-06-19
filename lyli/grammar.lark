@@ -2,16 +2,11 @@ start : instr_list
 
 instr : expr
       | stmt
-      | bop_stmt
-      | uop_stmt
-      | operator
-      | "(" instr ")"
 
 expr : atomic_expr
      | call_expr
 
 stmt : expr (expr)+
-     | expr (expr)* bop_expr
 
 atomic_expr : string_expr
             | longstring_expr
@@ -24,18 +19,8 @@ call_expr: expr "(" instr_list ")"
          | expr "{" instr_list "}"
          | expr "[" instr_list "]"
 
-par_expr: expr | "(" instr ")"
-
-bop_expr: expr (operator par_expr)+
-
-bop_stmt: (par_expr operator)+ par_expr?
-
-uop_stmt: operator par_expr
-
 instr_list: (instr ",")* instr?
           | (instr ";")* instr?
-
-operator: OPERATOR
 
 string_expr : STRING
 
@@ -52,7 +37,7 @@ integer_expr : INT_LITERAL
 
 float_expr : FLOAT_LITERAL
 
-symbol_expr : IDENTIFIER
+symbol_expr : IDENTIFIER | OPERATOR
 
 INT_LITERAL : /[1-9]([0-9]|_[0-9])*/
 BIN_LITERAL : /0b[01]([01]|_[01])*/
