@@ -7,6 +7,9 @@ import lyli.object
 import operator
 import re
 
+def eval_all(*args):
+  pass
+
 def _print(arg):
     print(arg.val)
 
@@ -370,7 +373,7 @@ prelude_ctx = context.Context({
     "if" : func.PyFunc(_if),
     "return" : func.PyMacro(_ret),
     "struct" : func.PyMacro(_defstruct),
-    "$" : func.PyMacro(eval.eval_all),
+    "$" : func.PyMacro(eval_all),
     "block" : func.PyMacro(_block),
     "::" : func.PyMacro(_scope),
     "." : func.PyMacro(_dot),
