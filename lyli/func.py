@@ -13,7 +13,7 @@ class Macro(Func):
 
 class LyliFunc(Func):
 
-  class Return(object):
+  class Return:
     def __init__(self, val):
       self.val = val
 
