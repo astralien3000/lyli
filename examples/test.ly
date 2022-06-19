@@ -19,9 +19,9 @@ print(loöl(10));
 print(loöl(42));
 
 struct Test {
-  int a;
-  int b;
-  int c;
+  a : int;
+  b : int;
+  c : int;
 };
 
 let test : Test;

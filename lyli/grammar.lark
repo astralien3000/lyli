@@ -1,4 +1,4 @@
-start : instr_list
+file : instr_list
 
 instr : expr
       | stmt

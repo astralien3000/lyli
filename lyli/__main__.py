@@ -20,7 +20,7 @@ GRAMMAR_PATH = os.path.join(
 with open(GRAMMAR_PATH, "r", encoding="utf-8") as f:
   grammar = f.read();
 
-parser = lark.Lark(grammar, parser="lalr")
+parser = lark.Lark(grammar, start="file", parser="lalr")
 trans = transformer.Transformer()
 
 context.cur_ctx = context.Context({}, prelude.prelude_ctx)
