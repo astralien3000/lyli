@@ -17,12 +17,10 @@ class LyliFunc(Func):
     def __init__(self, val):
       self.val = val
 
-  def __init__(self, restype, params_types, params, exp, func_ctx):
+  def __init__(self, params, exp, func_ctx):
     self.params = params
     self.exp = exp
     self.func_ctx = func_ctx
-    self.restype = restype
-    self.params_types = params_types
 
   def __call__(self, ctx, *args):
     args = [eval.eval(ctx, arg)[1] for arg in args]
@@ -32,9 +30,8 @@ class LyliFunc(Func):
     })
     ret = None
     for e in self.exp:
-      _, tmp = eval.eval(exec_ctx, e)
-      if isinstance(tmp, LyliFunc.Return):
-        ret = tmp.val
+      _, ret = eval.eval(exec_ctx, e)
+      if isinstance(ret, LyliFunc.Return):
         break
     return ctx, ret
 
