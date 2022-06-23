@@ -35,14 +35,12 @@ class LyliFunc(Func):
         break
     return ctx, ret
 
-  def __str__(self):
-    ret = "[fn "
-    ret += str(self.params) + " -> "
-    ret += str(self.restype) + " \n"
-    for e in self.exp:
-      ret += str(e) + "\n"
-    ret += "]"
-    return ret
+  def __repr__(self):
+    return f"""[fn {
+      self.params
+    } -> {
+      self.exp
+    }]"""
 
 
 class BOp(Func):

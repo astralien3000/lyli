@@ -59,20 +59,15 @@ def _stmt_print(matchers, ctx, *args):
   return matchers[0](matchers[1:], ctx, *args)
 
 
-def _stmt_fn(ctx, *args):
-  [[fn_symbol, *fn_args], arrow_op, [fn_ret_type, *fn_body], *others] = args
-  assert(isinstance(fn_symbol, ast.Symbol))
-  assert(isinstance(arrow_op, ast.Symbol))
-  assert(arrow_op.name == "->")
-  assert(len(others) == 0)
-  fn_arg_symbols = [
-    fn_arg_symbol
-    for [stmt_symbol, fn_arg_symbol, typehint_op, fn_arg_type] in fn_args
-  ]
-  new_ctx = context.Context(ctx)
-  f = func.LyliFunc(fn_arg_symbols, fn_body, new_ctx)
-  new_ctx[fn_symbol.name] = f
-  return new_ctx, f
+@Stmt.matcher
+def _stmt_fn(matchers, ctx, *args):
+  match args:
+    case [S("fn"), C([S(fn_name), *fn_args]), S("->"), C([fn_ret_type, *fn_body]), *others]:
+      new_ctx = context.Context(ctx)
+      f = func.LyliFunc([], fn_body, new_ctx)
+      new_ctx[fn_name] = f
+      return new_ctx, f
+  return matchers[0](matchers[1:], ctx, *args)
 
 
 prelude_ctx = context.Context({
