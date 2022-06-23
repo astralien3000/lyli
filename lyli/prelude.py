@@ -4,6 +4,10 @@ import lyli.eval as eval
 import lyli.ast as ast
 
 
+S = ast.Symbol
+C = ast.Call
+
+
 def _file(ctx, *args):
   ret = None
   for arg in args:
@@ -11,39 +15,48 @@ def _file(ctx, *args):
   return ctx, ret
 
 
-def _stmt(ctx, *args):
-  S = ast.Symbol
-  C = ast.Call
+class Stmt:
+  matchers = []
+
+  @staticmethod
+  def matcher(function):
+    Stmt.matchers.append(function)
+    return function
+  
+  @staticmethod
+  def final(matchers, ctx, *args):
+    raise Exception(
+      f"Could not match {args}"
+    )
+
+  @staticmethod
+  def stmt(ctx, *args):
+    return Stmt.matchers[0](
+      [*Stmt.matchers[1:], Stmt.final],
+      ctx,
+      *args
+    )
+
+
+@Stmt.matcher
+def _stmt_let(matchers, ctx, *args):
   match args:
-    case [S("let"), S(var_name), S("="), *val_exprs]:
-      print(f"LET {var_name} = {val_exprs}")
+    case [S("let"), S(var_name), S("="), val_expr]:
+      ctx, value = eval.eval(ctx, val_expr)
+      new_ctx = context.Context(ctx, {
+        var_name: value,
+      })
+      return new_ctx, None
+  return matchers[0](matchers[1:], ctx, *args)
+
+
+@Stmt.matcher
+def _stmt_print(matchers, ctx, *args):
+  match args:
     case [S("print"), *val_exprs]:
-      print("PRINT")
-    case [S("fn"), C([S(func_name), *func_args])]:
-      print(f"FN {func_name}")
-    case [S("fn"), C([C([S(func_name), *func_args]), *func_exprs])]:
-      print(f"FN2 {func_name}")
-    case [S("fn"), C([S(func_name), *func_args]), S("->"), C([func_ret_type, *func_exprs])]:
-      print(f"FN3 {func_name}")
-  return ctx, None
-  # return eval.eval(
-  #   ctx,
-  #   ast.Call(
-  #     ast.Symbol(f"stmt.{args[0]}"),
-  #     *args[1:],
-  #   )
-  # )
-
-
-def _stmt_let(ctx, *args):
-  [let_symbol, eq_op, let_value, *others] = args
-  assert(isinstance(eq_op, ast.Symbol))
-  assert(eq_op.name == "=")
-  assert(len(others) == 0)
-  new_ctx = context.Context(ctx, {
-    let_symbol.name: let_value
-  })
-  return new_ctx, None
+      print(*val_exprs)
+      return ctx, None
+  return matchers[0](matchers[1:], ctx, *args)
 
 
 def _stmt_fn(ctx, *args):
@@ -64,7 +77,7 @@ def _stmt_fn(ctx, *args):
 
 prelude_ctx = context.Context({
   "file": func.PyMacro(_file),
-  "stmt": func.PyMacro(_stmt),
+  "stmt": func.PyMacro(Stmt.stmt),
 
   "print": func.PyFunc(print),
 })
