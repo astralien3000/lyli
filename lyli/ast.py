@@ -15,11 +15,13 @@ class Atomic(Expr):
 
 
 class Symbol(Atomic):
+  __match_args__ = ("val",)
+
   def __init__(self, val: str):
     assert(isinstance(val, str))
     self.val = val
 
-  def __str__(self):
+  def __repr__(self):
     return self.val
   
   @property
@@ -32,7 +34,7 @@ class String(Atomic):
     assert(isinstance(val, str))
     self.val = val
 
-  def __str__(self):
+  def __repr__(self):
     return f'"{self.val}"'
 
   @property
@@ -46,7 +48,7 @@ class Char(Atomic):
     assert(len(val) == 1)
     self.val = val
 
-  def __str__(self):
+  def __repr__(self):
     return f"'{self.val}'"
 
   @property
@@ -59,7 +61,7 @@ class Integer(Atomic):
     assert(isinstance(val, str))
     self.val = val
 
-  def __str__(self):
+  def __repr__(self):
     return self.val
 
   @property
@@ -72,7 +74,7 @@ class Float(Atomic):
     assert(isinstance(val, str))
     self.val = val
 
-  def __str__(self):
+  def __repr__(self):
     return self.val
 
   @property
@@ -81,13 +83,15 @@ class Float(Atomic):
 
 
 class Call(Expr):
-  def __init__(self, *args):
+  __match_args__ = ("args",)
+
+  def __init__(self, args):
     self.args = args
 
   def __getitem__(self, i):
     return self.args[i]
 
-  def __str__(self):
+  def __repr__(self):
     return f"""({
       " ".join([
         str(arg) for arg in self.args

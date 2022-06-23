@@ -12,16 +12,27 @@ def _file(ctx, *args):
 
 
 def _stmt(ctx, *args):
-  match "lool":
-    case "lool":
-      print("lool")
-  return eval.eval(
-    ctx,
-    ast.Call(
-      ast.Symbol(f"stmt.{args[0]}"),
-      *args[1:],
-    )
-  )
+  S = ast.Symbol
+  C = ast.Call
+  match args:
+    case [S("let"), S(var_name), S("="), *val_exprs]:
+      print(f"LET {var_name} = {val_exprs}")
+    case [S("print"), *val_exprs]:
+      print("PRINT")
+    case [S("fn"), C([S(func_name), *func_args])]:
+      print(f"FN {func_name}")
+    case [S("fn"), C([C([S(func_name), *func_args]), *func_exprs])]:
+      print(f"FN2 {func_name}")
+    case [S("fn"), C([S(func_name), *func_args]), S("->"), C([func_ret_type, *func_exprs])]:
+      print(f"FN3 {func_name}")
+  return ctx, None
+  # return eval.eval(
+  #   ctx,
+  #   ast.Call(
+  #     ast.Symbol(f"stmt.{args[0]}"),
+  #     *args[1:],
+  #   )
+  # )
 
 
 def _stmt_let(ctx, *args):
