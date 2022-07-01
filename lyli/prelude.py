@@ -148,4 +148,12 @@ prelude_ctx = context.Context({
   "<": func.PyFunc(op.lt),
   ">": func.PyFunc(op.gt),
 
+  "quote": func.PyMacro(lambda ctx, arg: (ctx, arg)),
+
+  "pair": func.PyFunc(lambda l, r: (l, r)),
+  "left": func.PyFunc(lambda p: p[0]),
+  "right": func.PyFunc(lambda p: p[1]),
+
+  "typeof": func.PyFunc(lambda arg: None),
+
 })
