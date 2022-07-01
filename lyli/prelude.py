@@ -80,17 +80,28 @@ def _stmt_print(next, ctx, *args):
   return next()
 
 
+def arg_names(*fn_args):
+  ret = []
+  for arg in fn_args:
+    match arg:
+      case S(arg_name):
+        ret.append(arg_name)
+      case C([S("stmt"), S(arg_name), S(":"), arg_type]):
+        ret.append(arg_name)
+  return ret
+
+
 @_stmt.matcher
 def _stmt_fn(next, ctx, *args):
   match args:
     case [S("fn"), C([S(fn_name), *fn_args]), S("->"), C([fn_ret_type, *fn_body])]:
       new_ctx = context.Context(ctx)
-      f = func.LyliFunc(fn_args, fn_body, new_ctx)
+      f = func.LyliFunc(arg_names(*fn_args), fn_body, new_ctx)
       new_ctx[fn_name] = f
       return new_ctx, f
     case [S("fn"), C([C([S(fn_name), *fn_args]), *fn_body])]:
       new_ctx = context.Context(ctx)
-      f = func.LyliFunc(fn_args, fn_body, new_ctx)
+      f = func.LyliFunc(arg_names(*fn_args), fn_body, new_ctx)
       new_ctx[fn_name] = f
       return new_ctx, f
   return next()
