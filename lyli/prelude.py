@@ -69,6 +69,12 @@ def _stmt_let(next, ctx, *args):
         var_name: value,
       })
       return new_ctx, None
+    case [S("let"), S(var_name), S(":"), type_expr, S("="), val_expr]:
+      ctx, value = eval.eval(ctx, val_expr)
+      new_ctx = context.Context(ctx, {
+        var_name: value,
+      })
+      return new_ctx, None
     case [S("let"), S(var_name), S("="), *others]:
       ctx, value = eval.eval(ctx, C([S("stmt"), *others]))
       new_ctx = context.Context(ctx, {
