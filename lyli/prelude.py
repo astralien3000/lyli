@@ -98,10 +98,10 @@ def _stmt_fn(next, ctx, *args):
 
 
 @_stmt.matcher
-def _stmt_add(next, ctx, *args):
+def _stmt_op(next, ctx, *args):
   match args:
-    case [left_expr, S("+"), right_expr]:
-      return eval.eval(ctx, C([S("+"), left_expr, right_expr]))
+    case [left_expr, S(op_name), right_expr]:
+      return eval.eval(ctx, C([S(op_name), left_expr, right_expr]))
   return next()
 
 
@@ -112,4 +112,11 @@ prelude_ctx = context.Context({
   "print": func.PyFunc(print),
 
   "+": func.PyFunc(op.add),
+  "-": func.PyFunc(op.sub),
+
+  "*": func.PyFunc(op.mul),
+  "/": func.PyFunc(op.truediv),
+  "%": func.PyFunc(op.mod),
+
+  "$": func.PyFunc(lambda x: x)
 })

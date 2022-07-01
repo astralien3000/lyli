@@ -38,7 +38,7 @@ def main(argv=sys.argv[1:]):
       expr = trans.transform(raw)
       print(expr)
       cur_ctx, res = eval.eval(cur_ctx, expr)
-      if res: print(res)
+      if res is not None: print(res)
   elif len(argv) == 1:
     with open(argv[0], "r", encoding="utf-8") as f:
       code = f.read()
