@@ -1,3 +1,5 @@
+import re
+
 class Expr:
   """
   Base ast expression class.
@@ -66,7 +68,12 @@ class Integer(Atomic):
 
   @property
   def value(self):
-    return int(self.val)
+    if re.match(r"^\d+$", self.val):
+      return int(self.val)
+    elif re.match(r"^0x[0-9A-Fa-f]+$", self.val):
+      return int(self.val, base=16)
+    else:
+      raise ValueError(self.val)
 
 
 class Float(Atomic):

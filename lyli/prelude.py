@@ -69,6 +69,12 @@ def _stmt_let(next, ctx, *args):
         var_name: value,
       })
       return new_ctx, None
+    case [S("let"), S(var_name), S("="), *others]:
+      ctx, value = eval.eval(ctx, C([S("stmt"), *others]))
+      new_ctx = context.Context(ctx, {
+        var_name: value,
+      })
+      return new_ctx, None
   return next()
 
 
@@ -104,7 +110,16 @@ def _stmt_fn(next, ctx, *args):
       f = func.LyliFunc(arg_names(*fn_args), fn_body, new_ctx)
       new_ctx[fn_name] = f
       return new_ctx, f
+    case [C([S("fn"), *fn_args]), S("->"), C([fn_ret_type, *fn_body])]:
+      f = func.LyliFunc(arg_names(*fn_args), fn_body, ctx)
+      return ctx, f
   return next()
+
+
+def _fn(ctx, *fn_args):
+  def _fn2(ctx, *fn_body):
+    return ctx, func.LyliFunc(arg_names(*fn_args), fn_body, ctx)
+  return ctx, func.PyMacro(_fn2)
 
 
 @_stmt.matcher
@@ -112,6 +127,17 @@ def _stmt_op(next, ctx, *args):
   match args:
     case [left_expr, S(op_name), right_expr]:
       return eval.eval(ctx, C([S(op_name), left_expr, right_expr]))
+    case [left_expr, S(op1_name), mid_expr, S(op2_name), right_expr]:
+      return eval.eval(
+        ctx,
+        C([
+          S(op2_name),
+          C([
+            S(op1_name), left_expr, mid_expr
+          ]),
+          right_expr,
+        ])
+      )
   return next()
 
 
@@ -155,5 +181,7 @@ prelude_ctx = context.Context({
   "right": func.PyFunc(lambda p: p[1]),
 
   "typeof": func.PyFunc(lambda arg: None),
+
+  "fn": func.PyMacro(_fn),
 
 })
