@@ -129,6 +129,28 @@ def _fn(ctx, *fn_args):
 
 
 @_stmt.matcher
+def _stmt_if(next, ctx, *args):
+  match args:
+    case [C([C([S("if"), cond_expr]), if_body]), C([S("else"), else_body])]:
+      _, cond_val = eval.eval(ctx, cond_expr)
+      if cond_val:
+        return eval.eval(ctx, if_body)
+      else:
+        return eval.eval(ctx, else_body)
+  return next()
+
+
+@_stmt.matcher
+def _stmt_dot(next, ctx, *args):
+  match args:
+    case [S(left), S("."), S(right)]:
+      return eval.eval(ctx, C([S(right), S(left)]))
+    case [S(left), S("."), C([S(right), *right_args])]:
+      return eval.eval(ctx, C([S(right), S(left), *right_args]))
+  return next()
+
+
+@_stmt.matcher
 def _stmt_op(next, ctx, *args):
   match args:
     case [left_expr, S(op_name), right_expr]:
@@ -144,18 +166,6 @@ def _stmt_op(next, ctx, *args):
           right_expr,
         ])
       )
-  return next()
-
-
-@_stmt.matcher
-def _stmt_if(next, ctx, *args):
-  match args:
-    case [C([C([S("if"), cond_expr]), if_body]), C([S("else"), else_body])]:
-      _, cond_val = eval.eval(ctx, cond_expr)
-      if cond_val:
-        return eval.eval(ctx, if_body)
-      else:
-        return eval.eval(ctx, else_body)
   return next()
 
 
