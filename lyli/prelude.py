@@ -76,8 +76,7 @@ def _stmt_let(next, ctx, *args):
 def _stmt_print(next, ctx, *args):
   match args:
     case [S("print"), *val_exprs]:
-      print(*val_exprs)
-      return ctx, None
+      return eval.eval(ctx, C([S("print"), *val_exprs]))
   return next()
 
 
