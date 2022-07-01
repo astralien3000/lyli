@@ -104,6 +104,18 @@ def _stmt_op(next, ctx, *args):
   return next()
 
 
+@_stmt.matcher
+def _stmt_if(next, ctx, *args):
+  match args:
+    case [C([C([S("if"), cond_expr]), if_body]), C([S("else"), else_body])]:
+      _, cond_val = eval.eval(ctx, cond_expr)
+      if cond_val:
+        return eval.eval(ctx, if_body)
+      else:
+        return eval.eval(ctx, else_body)
+  return next()
+
+
 prelude_ctx = context.Context({
   "file": func.PyMacro(_file),
   "stmt": func.PyMacro(_stmt),
@@ -117,5 +129,12 @@ prelude_ctx = context.Context({
   "/": func.PyFunc(op.truediv),
   "%": func.PyFunc(op.mod),
 
-  "$": func.PyFunc(lambda x: x)
+  "$": func.PyFunc(lambda x: x),
+
+  "==": func.PyFunc(op.eq),
+  "<=": func.PyFunc(op.le),
+  ">=": func.PyFunc(op.ge),
+  "<": func.PyFunc(op.lt),
+  ">": func.PyFunc(op.gt),
+
 })
