@@ -5,6 +5,7 @@ import lyli.ast as ast
 import lyli._import as _import
 
 import operator as op
+import sys
 
 
 S = ast.Symbol
@@ -197,10 +198,11 @@ prelude_ctx = context.Context({
   "left": func.PyFunc(lambda p: p[0]),
   "right": func.PyFunc(lambda p: p[1]),
 
-  "typeof": func.PyFunc(lambda arg: None),
-
   "fn": func.PyMacro(_fn),
 
-  "import": func.PyMacro(_import._import)
+  "import": func.PyMacro(_import._import),
+
+  "putc": func.PyFunc(lambda c: None if sys.stdout.write(c) else None),
+  "getc": func.PyFunc(lambda: sys.stdin.read(1)),
 
 })
