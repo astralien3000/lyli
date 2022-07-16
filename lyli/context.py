@@ -26,3 +26,12 @@ class Context:
   
   def update(self, update_dict):
     self.data.update(update_dict)
+
+  def items(self):
+    return [
+      *self.parent.items(),
+      *self.data.items(),
+    ]
+
+  def __repr__(self):
+    return repr({k: v for k, v in self.items()})

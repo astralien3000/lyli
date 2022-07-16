@@ -1,8 +1,8 @@
 import lyli.context as context
 import lyli.func as func
 import lyli.eval as eval
-import lyli.parse as parse
 import lyli.ast as ast
+import lyli._import as _import
 
 import operator as op
 
@@ -201,13 +201,6 @@ prelude_ctx = context.Context({
 
   "fn": func.PyMacro(_fn),
 
-  "parse": func.PyFunc(parse.parse),
-  "parse_file": func.PyFunc(parse.parse_file),
-
-  "eval": func.PyMacro(lambda ctx, arg: eval.eval(*eval.eval(ctx, arg))),
-
-  "import": func.PyMacro(lambda ctx, filename: (
-    eval.eval(ctx, parse.parse_file(eval.eval(ctx, filename)[1]))
-  ))
+  "import": func.PyMacro(_import._import)
 
 })

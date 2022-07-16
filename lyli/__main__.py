@@ -4,11 +4,7 @@ import argparse
 import lyli.eval as eval
 import lyli.prelude as prelude
 import lyli.context as context
-import lyli.compile as compile
 import lyli.parse as parse
-
-
-context.cur_ctx = context.Context({}, prelude.prelude_ctx)
 
 
 def main(argv=sys.argv[1:]):
@@ -21,8 +17,19 @@ def main(argv=sys.argv[1:]):
     nargs="?",
     help="a lyli source file",
   )
+  args_parser.add_argument(
+    "-i", "--idir",
+    type=str,
+    nargs="*",
+    help="import dir",
+  )
   args = args_parser.parse_args(argv)
-  cur_ctx = context.Context(prelude.prelude_ctx)
+  cur_ctx = context.Context(
+    parent=prelude.prelude_ctx,
+    data={
+      "IDIR": args.idir,
+    }
+  )
   if args.source_file is None:
     while True:
       code = input(">")
@@ -36,9 +43,6 @@ def main(argv=sys.argv[1:]):
     print(expr)
     print("---------------- ast END ----------------")
     cur_ctx, res = eval.eval(cur_ctx, expr)
-    if "main" in context.cur_ctx:
-      print("main found ! compile...")
-      compile.compile_main(context.cur_ctx["main"])
 
 
 if __name__ == "__main__":
