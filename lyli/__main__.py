@@ -1,7 +1,5 @@
-import lark
 import sys
-import os
-import re
+import argparse
 
 import lyli.eval as eval
 import lyli.prelude as prelude
@@ -14,16 +12,26 @@ context.cur_ctx = context.Context({}, prelude.prelude_ctx)
 
 
 def main(argv=sys.argv[1:]):
+  args_parser = argparse.ArgumentParser(
+    description="lyli interpreter",
+  )
+  args_parser.add_argument(
+    "source_file",
+    type=str,
+    nargs="?",
+    help="a lyli source file",
+  )
+  args = args_parser.parse_args(argv)
   cur_ctx = context.Context(prelude.prelude_ctx)
-  if len(argv) == 0:
+  if args.source_file is None:
     while True:
       code = input(">")
       expr = parse.parse(code)
       print(expr)
       cur_ctx, res = eval.eval(cur_ctx, expr)
       if res is not None: print(res)
-  elif len(argv) == 1:
-    expr = parse.parse_file(argv[0])
+  else:
+    expr = parse.parse_file(args.source_file)
     print("---------------- ast BEG ----------------")
     print(expr)
     print("---------------- ast END ----------------")
