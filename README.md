@@ -1,6 +1,6 @@
-# Lyli
+# lyli
 
-Welcome to the Lyli (Lyrical Lisp) programming language repository !
+Welcome to the lyli (Lyrical Lisp) programming language repository !
 
 # Disclaimer
 
@@ -18,20 +18,10 @@ fn main() {
 }
 ```
 
-Why does it looks more like a mix between Python and Rust ?
-Well.. Things happened...
+Looks more like a mix between Python and Rust, but we will see where it goes.
 
-# Setup
+# Repo structure
 
-```sh
-git clone https://github.com/astralien3000/lyli.git
-cd lyli
-python3 -m build
-python3 -m pip install -e .
-```
-
-# Usage
-
-```sh
-lyli examples/hello.ly
-```
+- `doc` : Contains various documents about the lyli language
+- `example` : Contains various example projects written in lyli
+- `lyli.py` : Contains the python implementation of the lyli interpreter

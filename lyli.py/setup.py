@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from distutils.core import setup
 from os import path
 
@@ -24,10 +22,15 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
     ],
+    package_dir={"": "src"},
     packages=["lyli"],
     include_package_data=True,
-    requires=[
+    install_requires=[
         "lark",
     ],
-    entry_points={"console_scripts": ["lyli=lyli.__main__:main"]},
+    entry_points={
+        "console_scripts": [
+            "lyli=lyli.__main__:main",
+        ],
+    },
 )
