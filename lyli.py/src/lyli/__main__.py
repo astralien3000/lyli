@@ -20,7 +20,7 @@ def main(argv=sys.argv[1:]):
   args_parser.add_argument(
     "-i", "--idir",
     type=str,
-    nargs="*",
+    action="append",
     help="import dir",
   )
   args = args_parser.parse_args(argv)

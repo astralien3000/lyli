@@ -94,6 +94,14 @@ def _stmt_print(next, ctx, *args):
   return next()
 
 
+@_stmt.matcher
+def _stmt_import(next, ctx, *args):
+  match args:
+    case [S("import"), expr]:
+      return eval.eval(ctx, C([S("import"), expr]))
+  return next()
+
+
 def arg_names(*fn_args):
   ret = []
   for arg in fn_args:

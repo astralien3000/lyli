@@ -22,16 +22,14 @@ fn main() {
                 Err(_) => continue,
             };
 
+            print(f("You guessed {guess}."))
+
             match(cmp(guess, secret)) {
+                Cmp(<) => print("Too small !"),
+                Cmp(>) => print("Too big !"),
                 Cmp(==) => {
                     print("You win !");
                     break;
-                },
-                Cmp(<) => {
-                    print("Too small !");
-                },
-                Cmp(>) => {
-                    print("Too big !");
                 },
             };
         };
@@ -40,7 +38,7 @@ fn main() {
 
         match(continue_answer()) {
             Yes => continue,
-            default => break,
+            * => break,
         }
     };
 };
