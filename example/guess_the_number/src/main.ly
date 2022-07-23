@@ -11,18 +11,18 @@ fn main() {
     loop {
         print("Guess the number !");
 
-        let secret = rand(1..=100);
+        let secret = rand(1:100);
 
         loop {
             print("Write your guess.");
 
             let guess = match(guess_answer()) {
                 Guess(num) => num,
-                Quit => break,
+                Quit => return,
                 Err(_) => continue,
             };
 
-            print(f("You guessed {guess}."))
+            print("You guessed ", guess, ".");
 
             match(cmp(guess, secret)) {
                 Cmp(<) => print("Too small !"),
@@ -39,6 +39,8 @@ fn main() {
         match(continue_answer()) {
             Yes => continue,
             * => break,
-        }
+        };
     };
 };
+
+main()

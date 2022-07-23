@@ -1,3 +1,4 @@
+from random import randint
 import lyli.context as context
 import lyli.func as func
 import lyli.eval as eval
@@ -102,6 +103,14 @@ def _stmt_import(next, ctx, *args):
   return next()
 
 
+@_stmt.matcher
+def _stmt_use(next, ctx, *args):
+  match args:
+    case [S("use"), S(alias), S("="), *exprs]:
+      return ctx, None
+  return next()
+
+
 def arg_names(*fn_args):
   ret = []
   for arg in fn_args:
@@ -179,6 +188,25 @@ def _stmt_op(next, ctx, *args):
   return next()
 
 
+def _loop(ctx, *args):
+  while True:
+    for arg in args:
+      ctx, _ = eval.eval(ctx, arg)
+
+
+def _rand(ctx, *args):
+  match args:
+    case [C([S("stmt"), left, S(":"), right])]:
+      return ctx, randint(left.value, right.value)
+  raise Exception("invalid call to rand")
+
+
+def _match(ctx, *args):
+  return ctx, func.PyMacro(
+    lambda ctx, *args: (ctx, 50)
+  )
+
+
 prelude_ctx = context.Context({
   "file": func.PyMacro(_file),
   "stmt": func.PyMacro(_stmt),
@@ -213,4 +241,9 @@ prelude_ctx = context.Context({
   "putc": func.PyFunc(lambda c: None if sys.stdout.write(c) else None),
   "getc": func.PyFunc(lambda: sys.stdin.read(1)),
 
+  "loop": func.PyMacro(_loop),
+
+  "rand": func.PyMacro(_rand),
+
+  "match": func.PyMacro(_match),
 })
