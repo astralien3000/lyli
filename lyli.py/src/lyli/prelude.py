@@ -111,6 +111,14 @@ def _stmt_use(next, ctx, *args):
   return next()
 
 
+@_stmt.matcher
+def _stmt_variant(next, ctx, *args):
+  match args:
+    case [S("variant"), *exprs]:
+      return ctx, None
+  return next()
+
+
 def arg_names(*fn_args):
   ret = []
   for arg in fn_args:
@@ -147,15 +155,28 @@ def _fn(ctx, *fn_args):
   return ctx, func.PyMacro(_fn2)
 
 
+def _rec_elif(ctx, *args):
+  match args:
+    case [C([C([S("elif"), cond_expr]), elif_body]), *others]:
+      ctx, cond_val = eval.eval(ctx, cond_expr)
+      if cond_val:
+        return eval.eval(ctx, elif_body)
+      else:
+        return _rec_elif(ctx, *others)
+    case [C([S("else"), else_body])]:
+      return eval.eval(ctx, else_body)
+  raise Exception("invalid if-else expression")
+
+
 @_stmt.matcher
 def _stmt_if(next, ctx, *args):
   match args:
-    case [C([C([S("if"), cond_expr]), if_body]), C([S("else"), else_body])]:
-      _, cond_val = eval.eval(ctx, cond_expr)
+    case [C([C([S("if"), cond_expr]), *if_body]), *others]:
+      ctx, cond_val = eval.eval(ctx, cond_expr)
       if cond_val:
         return eval.eval(ctx, if_body)
       else:
-        return eval.eval(ctx, else_body)
+        return _rec_elif(ctx, *others)
   return next()
 
 
@@ -207,6 +228,17 @@ def _match(ctx, *args):
   )
 
 
+def _if(cond):
+  if cond:
+    return func.PyFunc(
+      lambda *args: "LOOL"
+    )
+  else:
+    return func.PyFunc(
+      lambda *args: None
+    )
+
+
 prelude_ctx = context.Context({
   "file": func.PyMacro(_file),
   "stmt": func.PyMacro(_stmt),
@@ -246,4 +278,6 @@ prelude_ctx = context.Context({
   "rand": func.PyMacro(_rand),
 
   "match": func.PyMacro(_match),
+
+  "if": func.PyFunc(_if),
 })

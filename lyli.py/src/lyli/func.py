@@ -30,7 +30,7 @@ class LyliFunc(Func):
     })
     ret = None
     for e in self.exp:
-      _, ret = eval.eval(exec_ctx, e)
+      exec_ctx, ret = eval.eval(exec_ctx, e)
       if isinstance(ret, LyliFunc.Return):
         break
     return ctx, ret
