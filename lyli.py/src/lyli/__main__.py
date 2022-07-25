@@ -5,6 +5,7 @@ import lyli.eval as eval
 import lyli.prelude as prelude
 import lyli.context as context
 import lyli.parse as parse
+import lyli.compile.js as js
 
 
 def main(argv=sys.argv[1:]):
@@ -37,6 +38,7 @@ def main(argv=sys.argv[1:]):
       print(expr)
       cur_ctx, res = eval.eval(cur_ctx, expr)
       if res is not None: print(res)
+      print(js.compile(expr))
   else:
     expr = parse.parse_file(args.source_file)
     print("---------------- ast BEG ----------------")

@@ -59,6 +59,8 @@ class Char(Atomic):
 
 
 class Integer(Atomic):
+  __match_args__ = ("val",)
+
   def __init__(self, val: str):
     assert(isinstance(val, str))
     self.val = val
