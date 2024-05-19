@@ -4,7 +4,7 @@ import argparse
 import lyli.eval as eval
 import lyli.prelude as prelude
 import lyli.context as context
-import lyli.ast._parse as _parse
+import lyli.ast as ast
 import lyli.compile.js as js
 
 
@@ -34,17 +34,20 @@ def main(argv=sys.argv[1:]):
   if args.source_file is None:
     while True:
       code = input(">")
-      expr = _parse.parse(code)
+      expr = ast.parse(code)
       print(expr)
       cur_ctx, res = eval.eval(cur_ctx, expr)
       if res is not None: print(res)
       print(js.compile(expr))
   else:
     with open(args.source_file) as f:
-      expr = _parse.parse(f.read())
+      expr = ast.parse(f.read())
     print("---------------- ast BEG ----------------")
     print(expr)
     print("---------------- ast END ----------------")
+    print("---------------- unparse BEG ----------------")
+    print(ast.unparse(expr))
+    print("---------------- unparse END ----------------")
     cur_ctx, res = eval.eval(cur_ctx, expr)
 
 
