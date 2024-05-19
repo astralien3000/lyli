@@ -1,12 +1,9 @@
-file : instr_list
-
-instr : expr
-      | stmt
+file : stmt_list
 
 expr : atomic_expr
-     | call_expr
+     | list_expr
 
-stmt : expr (expr)+
+stmt : expr (expr)*
 
 atomic_expr : string_expr
             | longstring_expr
@@ -15,12 +12,12 @@ atomic_expr : string_expr
             | integer_expr
             | symbol_expr
 
-call_expr: expr "(" instr_list ")"
-         | expr "{" instr_list "}"
-         | expr "[" instr_list "]"
+list_expr: "(" stmt_list ")"
+         | "{" stmt_list "}"
+         | "[" stmt_list "]"
 
-instr_list: (instr ",")* instr?
-          | (instr ";")* instr?
+stmt_list: (stmt ",")* stmt?
+          | (stmt ";")* stmt?
 
 string_expr : STRING
 

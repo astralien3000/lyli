@@ -2,15 +2,15 @@ from random import randint
 import lyli.context as context
 import lyli.func as func
 import lyli.eval as eval
-import lyli.ast as ast
+import lyli.ast._ast as _ast
 import lyli._import as _import
 
 import operator as op
 import sys
 
 
-S = ast.Symbol
-C = ast.Call
+S = _ast.Symbol
+C = _ast.Call
 
 
 def _file(ctx, *args):

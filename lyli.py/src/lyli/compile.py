@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-import lyli.ast as ast
+import lyli.ast._ast as _ast
 import lyli.context as context
 import lyli.func as func
 import lyli.eval as eval
@@ -67,13 +67,13 @@ def gen_func(name, fn):
   """
 
 def gen_expr(x):
-  if isinstance(x, ast.Symbol):
+  if isinstance(x, _ast.Symbol):
     return context.cur_ctx[str(x)]
-  elif isinstance(x, ast.Atomic):
+  elif isinstance(x, _ast.Atomic):
     return str(x.val)
-  elif isinstance(x, ast.Call):
+  elif isinstance(x, _ast.Call):
     return gen_call(x)
-  elif isinstance(x, ast.Expr):
+  elif isinstance(x, _ast.Expr):
     raise TypeError("not (yet) supported : " + str(type(x)) + " (" + str(x) + ")")
   else:
     return x
@@ -101,10 +101,10 @@ def gen_pyfunc_call(f, args):
   args_str = "("
   args_vals = []
   for a in args:
-    if isinstance(a, ast.Integer):
+    if isinstance(a, _ast.Integer):
       args_str += "i"
       args_vals.append(str(a.val))
-    elif isinstance(a, ast.String):
+    elif isinstance(a, _ast.String):
       args_str += "s"
       args_vals.append('"' + a.val + '"')
     else:

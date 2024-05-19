@@ -1,4 +1,4 @@
-import lyli.ast as ast
+import lyli.ast._ast as _ast
 import lyli.context as context
 import lyli.eval as eval
 
@@ -75,7 +75,7 @@ class LyliMacro(Macro):
 
   def __init__(self, params, exp):
     self.params = params
-    self.exp = ast.Call([ast.Symbol("body")] + exp)
+    self.exp = _ast.Call([_ast.Symbol("body")] + exp)
 
   def __call__(self, ctx, *args):
     exec_ctx = context.Context(ctx, {

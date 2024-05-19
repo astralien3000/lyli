@@ -1,6 +1,12 @@
 import re
 
-class Expr:
+class AST:
+  """
+  Base ast class.
+  """
+  pass
+
+class Expr(AST):
   """
   Base ast expression class.
   Can be either an Atomic or a Call.
@@ -91,7 +97,24 @@ class Float(Atomic):
     return float(self.val)
 
 
-class Call(Expr):
+class List(Expr):
+  __match_args__ = ("args",)
+
+  def __init__(self, args):
+    self.args = args
+
+  def __getitem__(self, i):
+    return self.args[i]
+
+  def __repr__(self):
+    return f"""[{
+      ",".join([
+        str(arg) for arg in self.args
+      ])
+    }]"""
+
+
+class Stmt(AST):
   __match_args__ = ("args",)
 
   def __init__(self, args):
@@ -106,3 +129,20 @@ class Call(Expr):
         str(arg) for arg in self.args
       ])
     })"""
+
+
+class File(AST):
+  __match_args__ = ("args",)
+
+  def __init__(self, args):
+    self.args = args
+
+  def __getitem__(self, i):
+    return self.args[i]
+
+  def __repr__(self):
+    return f"""{{{
+      ";".join([
+        str(arg) for arg in self.args
+      ])
+    }}}"""
