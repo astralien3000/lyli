@@ -146,3 +146,8 @@ class File(AST):
         str(arg) for arg in self.args
       ])
     }}}"""
+
+
+# For compatibility with the old code
+# TODO : remove
+Call = List

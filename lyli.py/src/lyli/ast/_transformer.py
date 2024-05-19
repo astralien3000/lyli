@@ -14,29 +14,29 @@ class Transformer(lark.Transformer):
   def stmt(self, args):
     return _ast.Stmt(args)
 
-  def atomic_expr(self, args):
+  def atomic(self, args):
     return args[0]
 
-  def list_expr(self, args):
+  def list(self, args):
     return _ast.List(*args)
 
   def stmt_list(self, args):
     return args
 
-  def string_expr(self, args):
+  def string(self, args):
     return _ast.String(str(args[0])[1:-1])
 
-  def longstring_expr(self, args):
+  def longstring(self, args):
     return _ast.String(str(args[0])[3:-3])
 
-  def char_expr(self, args):
+  def char(self, args):
     return _ast.Char(str(args[0])[1:-1])
 
-  def integer_expr(self, args):
+  def integer(self, args):
     return _ast.Integer(str(args[0]))
 
-  def float_expr(self, args):
+  def float(self, args):
     return _ast.Float(str(args[0]))
   
-  def symbol_expr(self, args):
+  def symbol(self, args):
     return _ast.Symbol(str(args[0]))

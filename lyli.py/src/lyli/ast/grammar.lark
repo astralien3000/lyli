@@ -1,40 +1,40 @@
 file : stmt_list
 
-expr : atomic_expr
-     | list_expr
+expr : atomic
+     | list
 
 stmt : expr (expr)*
 
-atomic_expr : string_expr
-            | longstring_expr
-            | char_expr
-            | float_expr
-            | integer_expr
-            | symbol_expr
+atomic : string
+       | longstring
+       | char
+       | float
+       | integer
+       | symbol
 
-list_expr: "(" stmt_list ")"
-         | "{" stmt_list "}"
-         | "[" stmt_list "]"
+list: "(" stmt_list ")"
+    | "{" stmt_list "}"
+    | "[" stmt_list "]"
 
 stmt_list: (stmt ",")* stmt?
-          | (stmt ";")* stmt?
+         | (stmt ";")* stmt?
 
-string_expr : STRING
+string : STRING
 
-longstring_expr : LONGSTRING
+longstring : LONGSTRING
 
-char_expr : CHAR_LITERAL
+char : CHAR_LITERAL
 
-integer_expr : INT_LITERAL
-             | BIN_LITERAL
-             | OCT_LITERAL
-             | DEC_LITERAL
-             | HEX_LITERAL
-             | ZERO_LITERAL
+integer : INT_LITERAL
+        | BIN_LITERAL
+        | OCT_LITERAL
+        | DEC_LITERAL
+        | HEX_LITERAL
+        | ZERO_LITERAL
 
-float_expr : FLOAT_LITERAL
+float : FLOAT_LITERAL
 
-symbol_expr : IDENTIFIER | OPERATOR
+symbol : IDENTIFIER | OPERATOR
 
 INT_LITERAL : /[1-9]([0-9]|_[0-9])*/
 BIN_LITERAL : /0b[01]([01]|_[01])*/
