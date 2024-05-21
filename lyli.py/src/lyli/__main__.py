@@ -36,9 +36,9 @@ def main(argv=sys.argv[1:]):
       code = input(">")
       expr = ast.parse(code)
       print(expr)
-      cur_ctx, res = eval.eval(cur_ctx, expr)
+      res = eval.eval(expr, cur_ctx)
       if res is not None: print(res)
-      print(js.compile(expr))
+      # print(js.compile(expr))
   else:
     with open(args.source_file) as f:
       expr = ast.parse(f.read())
@@ -48,7 +48,7 @@ def main(argv=sys.argv[1:]):
     print("---------------- unparse BEG ----------------")
     print(ast.unparse(expr))
     print("---------------- unparse END ----------------")
-    cur_ctx, res = eval.eval(cur_ctx, expr)
+    res = eval.eval(expr, cur_ctx)
 
 
 if __name__ == "__main__":

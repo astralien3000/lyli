@@ -1,6 +1,6 @@
 from random import randint
 import lyli.context as context
-import lyli.func as func
+import lyli.object.func as func
 import lyli.eval as eval
 import lyli.ast._ast as _ast
 import lyli._import as _import
@@ -280,4 +280,7 @@ prelude_ctx = context.Context({
   "match": func.PyMacro(_match),
 
   "if": func.PyFunc(_if),
+
+  "true": True,
+  "false": False,
 })

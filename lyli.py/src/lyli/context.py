@@ -14,7 +14,7 @@ class Context:
 
   def __setitem__(self, key, val):
     self.data[key] = val
-  
+
   def __contains__(self, key):
     return (
       (key in self.data) or
@@ -23,9 +23,21 @@ class Context:
         (key in self.parent)
       )
     )
-  
+
   def update(self, update_dict):
     self.data.update(update_dict)
+
+  def keys(self):
+    return [
+      *self.parent.keys(),
+      *self.data.keys(),
+    ]
+
+  def values(self):
+    return [
+      *self.parent.values(),
+      *self.data.values(),
+    ]
 
   def items(self):
     return [
