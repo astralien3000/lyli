@@ -4,6 +4,7 @@ import lyli.object.func as func
 import lyli.eval as eval
 import lyli.ast._ast as _ast
 import lyli._import as _import
+import lyli.object as object
 
 import operator as op
 import sys
@@ -281,6 +282,6 @@ prelude_ctx = context.Context({
 
   "if": func.PyFunc(_if),
 
-  "true": True,
-  "false": False,
+  "true": object.Boolean(True),
+  "false": object.Boolean(False),
 })

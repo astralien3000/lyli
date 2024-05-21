@@ -1,9 +1,7 @@
-from lyli.ast import AST, Symbol, Atomic, List, Stmt, File
-from lyli.context import Context
-from lyli.object import Object, PyFunc
+from lyli import ast, context, object
 
 
-def call_PyFunc(pyfunc: PyFunc, args, ctx: Context):
+def call_PyFunc(pyfunc: object.PyFunc, args, ctx: context.Context):
   args = [eval(arg, ctx) for arg in args]
   return pyfunc.func(*args)
 
@@ -15,43 +13,56 @@ class ChainFunction:
   
   def add(self, func):
     self.func_list.append(func)
-    return func
+    return self
 
-  def __call__(self, ast: AST, ctx: Context):
+  def __call__(self, ast: ast.AST, ctx: context.Context):
     for func in self.func_list:
         ret = func(ast, ctx)
         if ret:
           return ret
-    return self.final_func(ast, ctx)
+    self.final_func(ast, ctx)
 
 
 @ChainFunction
-def stmt(stmt : Stmt, ctx : Context) -> Object:
-  raise TypeError(f"Unknown Stmt {stmt}")
+def stmt(stmt : ast.Stmt, ctx : context.Context) -> object.Object:
+  raise TypeError(f"Unknown ast.Stmt {stmt}")
 
 @stmt.add
-def stmt(stmt : Stmt, ctx : Context) -> Object:
+def stmt(stmt : ast.Stmt, ctx : context.Context) -> object.Object:
   match stmt.args:
-    case [Symbol(name), List(args)]:
+    case [ast.Symbol(name), ast.List(args)]:
       f = ctx[name]
       return call_PyFunc(f, args, ctx)
     case [expr]:
       return eval(expr, ctx)
 
 
-def eval(ast : AST, ctx : Context) -> Object:
-  if isinstance(ast, Symbol):
-    return ctx[ast.name]
-  elif isinstance(ast, Atomic):
-    return ast.val
-  elif isinstance(ast, List):
-    return List([eval(arg, ctx) for arg in ast.args])
-  elif isinstance(ast, File):
-    ret = None
-    for arg in ast.args:
-      ret = eval(arg, ctx)
-    return ret
-  elif isinstance(ast, Stmt):
-    return stmt(ast, ctx)
-  else:
-    raise TypeError(f"Unknown AST type: {type(ast)}")
+def eval_ast(source : ast.AST, ctx : context.Context) -> object.Object:
+  match source:
+    case ast.Symbol():
+      return ctx[source.name]
+    case ast.Integer():
+      return object.Integer(source.val)
+    case ast.String():
+      return object.String(source.val)
+    case ast.Char():
+      return object.Char(source.val)
+    case ast.Float():
+      return object.Float(source.val)
+    case ast.List():
+      return object.List([eval(arg, ctx) for arg in source.args])
+    case ast.File():
+      ret = None
+      for arg in source.args:
+        ret = eval(arg, ctx)
+      return ret
+    case ast.Stmt():
+      return stmt(source, ctx)
+    case _:
+      raise TypeError(f"Unknown AST type: {type(source)}")
+
+
+def eval(source, ctx : context.Context) -> object.Object:
+  if isinstance(source, str):
+    source = ast.parse(source)
+  return eval_ast(source, ctx)
