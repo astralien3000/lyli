@@ -2,7 +2,7 @@ from .object import Object
 
 
 class Integer(Object):
-  def __init__(self, val: int):
+  def __init__(self, val: str):
     self.val = val
 
   def __repr__(self):
@@ -13,7 +13,7 @@ class Integer(Object):
 
 
 class Float(Object):
-  def __init__(self, val: float):
+  def __init__(self, val: str):
     self.val = val
 
   def __repr__(self):
@@ -46,11 +46,16 @@ class Char(Object):
 
 
 class Boolean(Object):
-  def __init__(self, val: bool):
+  def __init__(self, val: str):
     self.val = val
 
   def __repr__(self):
     return f"Boolean({self.val})"
 
   def py_bool(self):
-    return bool(self.val)
+    if self.val == "true":
+      return True
+    elif self.val == "false":
+      return False
+    else:
+      raise ValueError(f"Unknown boolean value {self.val}")

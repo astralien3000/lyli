@@ -28,5 +28,6 @@ class AtomicTestCase(unittest.TestCase):
         self.assertTrue(isinstance(res, cls))
         self.assertEqual(getattr(res, method)(), val)
 
+
 if __name__ == '__main__':
   unittest.main()

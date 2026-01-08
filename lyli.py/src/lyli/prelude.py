@@ -240,11 +240,16 @@ def _if(cond):
     )
 
 
+def _print(*args):
+  print(*[str(arg.val) for arg in args])
+  return object.NoneType()
+
+
 prelude_ctx = context.Context({
   "file": func.PyMacro(_file),
   "stmt": func.PyMacro(_stmt),
 
-  "print": func.PyFunc(print),
+  "print": func.PyFunc(_print),
 
   "+": func.PyFunc(op.add),
   "-": func.PyFunc(op.sub),
@@ -282,6 +287,6 @@ prelude_ctx = context.Context({
 
   "if": func.PyFunc(_if),
 
-  "true": object.Boolean(True),
-  "false": object.Boolean(False),
+  "true": object.Boolean("true"),
+  "false": object.Boolean("false"),
 })

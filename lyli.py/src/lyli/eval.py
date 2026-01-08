@@ -7,6 +7,9 @@ def call_PyFunc(pyfunc: object.PyFunc, args, ctx: context.Context):
 
 
 class ChainFunction:
+  class Next:
+    pass
+
   def __init__(self, final_func):
     self.func_list = []
     self.final_func = final_func
@@ -14,11 +17,14 @@ class ChainFunction:
   def add(self, func):
     self.func_list.append(func)
     return self
+  
+  def next(self, ast, ctx):
+    return self.Next()
 
   def __call__(self, ast: ast.AST, ctx: context.Context):
     for func in self.func_list:
         ret = func(ast, ctx)
-        if ret:
+        if not isinstance(ret, self.Next):
           return ret
     self.final_func(ast, ctx)
 
@@ -35,6 +41,7 @@ def stmt(stmt : ast.Stmt, ctx : context.Context) -> object.Object:
       return call_PyFunc(f, args, ctx)
     case [expr]:
       return eval(expr, ctx)
+  return stmt.next(stmt, ctx)
 
 
 def eval_ast(source : ast.AST, ctx : context.Context) -> object.Object:
